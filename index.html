@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f6fed"><title>AI 错题本</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<style>:root{--pri:#2f6fed;--pri-d:#1f56c4;--pri-l:#e8f0ff;--ok:#12a150;--ok-l:#e3f7ec;--bad:#e5484d;--bad-l:#fdeced;--warn:#f08c00;--warn-l:#fff4e0;--ink:#1d2433;--sub:#5d6678;--line:#e5e8ef;--bg:#f5f7fb;--card:#fff;--r:14px;--nav:64px}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","Noto Sans SC","Source Han Sans SC",sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%;overflow-wrap:anywhere}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--pri)}
+.hidden{display:none!important}
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:8px 12px;min-height:56px}
+.brand{font-weight:800;font-size:18px;color:var(--pri);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.brand svg{width:26px;height:26px}
+.top .sp{flex:1}
+.kidsel{min-height:44px;border:1px solid var(--line);border-radius:22px;padding:0 10px;background:var(--pri-l);font-weight:600;max-width:min(46vw,260px);min-width:0}
+@media(max-width:420px){.brand span{font-size:16px}}
+.iconbtn{min-width:44px;min-height:44px;border:0;background:transparent;border-radius:12px;display:inline-flex;align-items:center;justify-content:center}
+.iconbtn:hover{background:var(--bg)}
+.iconbtn svg{width:24px;height:24px}
+/* nav */
+.nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:#fff;border-top:1px solid var(--line);display:flex;z-index:20}
+.nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;color:var(--sub);min-height:44px;padding:0}
+.nav button svg{width:24px;height:24px}
+.nav button.on{color:var(--pri);font-weight:700}
+main{max-width:1080px;margin:0 auto;padding:14px 12px calc(var(--nav) + 28px)}
+@media(min-width:900px){
+ .nav{position:sticky;top:56px;bottom:auto;height:52px;justify-content:center;gap:4px;border-top:0;border-bottom:1px solid var(--line);padding:0}
+ .nav button{flex:0 0 auto;flex-direction:row;padding:0 18px;font-size:15px;gap:6px}
+ .nav button svg{width:20px;height:20px}
+ main{padding:20px 20px 40px}
+}
+h1{font-size:22px;margin:4px 0 12px}
+h2{font-size:18px;margin:0 0 10px}
+h3{font-size:16px;margin:0 0 6px}
+.muted{color:var(--sub);font-size:14px}
+.small{font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card.hl{border-color:#bcd0ff;box-shadow:0 2px 10px rgba(47,111,237,.08)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row.between{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:#c9cfdb}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.pri:hover{background:var(--pri-d)}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--pri)}
+.btn.warnb{background:var(--warn-l);border-color:#ffd8a8;color:#a35a00}
+.btn.big{min-height:54px;font-size:17px;padding:0 22px}
+.btn.block{width:100%}
+.btn.sm{min-height:44px;padding:0 12px;font-size:14px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+label.f{display:block;margin:10px 0 4px;font-weight:600;font-size:14px}
+input[type=text],input[type=password],input[type=date],input[type=time],input[type=number],input[type=url],select,textarea{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+textarea{min-height:70px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid #bcd0ff;border-color:var(--pri)}
+.chk{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}
+.chk input{width:22px;height:22px;flex:0 0 auto}
+.tag{display:inline-flex;align-items:center;border-radius:999px;padding:1px 10px;font-size:13px;font-weight:600;background:var(--bg);color:var(--sub);white-space:nowrap;line-height:24px}
+.t-new{background:#eef1f6;color:#4b5567}
+.t-rev{background:var(--pri-l);color:var(--pri-d)}
+.t-hard{background:var(--bad-l);color:#b4232a}
+.t-done{background:var(--ok-l);color:#0b7a3c}
+.t-warn{background:var(--warn-l);color:#a35a00}
+.t-subj{background:#f1eaff;color:#6b3fd1}
+.wrong{color:var(--bad);text-decoration:line-through;text-decoration-thickness:2px}
+.right{color:var(--ok);font-weight:700}
+.pitfall{display:inline-block;background:var(--warn-l);color:#8a4b00;border-radius:8px;padding:2px 8px;font-size:14px}
+.mcard .stem{white-space:pre-wrap;margin:6px 0}
+.mcard .ans{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:15px}
+.mcard .ans b{color:var(--sub);font-weight:600}
+.hist{font-size:13px;color:var(--sub);background:var(--bg);border-radius:8px;padding:6px 10px;margin-top:8px}
+.hist b{color:var(--ink)}
+details summary{cursor:pointer;min-height:36px;display:flex;align-items:center;color:var(--pri);font-weight:600}
+.dots{display:inline-flex;gap:3px;vertical-align:middle}
+.dots i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dots .o{background:var(--ok)}.dots .x{background:var(--bad)}
+.banner{border-radius:var(--r);padding:12px 14px;margin-bottom:12px;font-weight:600}
+.banner.bad{background:var(--bad-l);color:#a1161c;border:1px solid #f7c2c4}
+.banner.info{background:var(--pri-l);color:var(--pri-d);border:1px solid #cfdcff}
+.banner.okb{background:var(--ok-l);color:#0b7a3c;border:1px solid #b6e8cb}
+.hero{background:linear-gradient(135deg,#2f6fed,#5b8ef5);color:#fff;border:0}
+.hero .muted{color:#e2ebff}
+.hero .num{font-size:44px;font-weight:800;line-height:1}
+.hero .btn{background:#fff;color:var(--pri);border-color:#fff}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+@media(min-width:760px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.stat .v{font-size:26px;font-weight:800}
+.stat .k{font-size:13px;color:var(--sub)}
+.todo{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.todo:first-child{border-top:0}
+.todo .main{flex:1;min-width:0}
+.todo .t1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* week plan */
+.weeks{display:grid;grid-template-columns:1fr;gap:12px}
+.weeks>*{min-width:0}
+@media(min-width:900px){.weeks{grid-template-columns:1fr 1fr}}
+.day{border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px;background:#fff;min-height:52px}
+.day.today{border-color:var(--pri);box-shadow:0 0 0 2px #dbe6ff}
+.day.past{background:#fafbfc}
+.day.over{outline:2px dashed var(--pri)}
+.day h4{margin:0 0 4px;font-size:14px;display:flex;justify-content:space-between;gap:6px}
+.pi{display:flex;align-items:center;gap:6px;border-radius:10px;padding:6px 8px;background:var(--bg);margin:4px 0;min-height:44px;cursor:grab;font-size:14px}
+.pi .tx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi.done-ok{background:var(--ok-l)}
+.pi.done-bad{background:var(--bad-l)}
+.pi.late{box-shadow:inset 3px 0 0 var(--bad)}
+/* quiz */
+.opt{display:block;width:100%;text-align:left;min-height:52px;border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px;margin:8px 0;font-size:16px}
+.opt.sel-ok{border-color:var(--ok);background:var(--ok-l)}
+.opt.sel-bad{border-color:var(--bad);background:var(--bad-l)}
+.streak{display:flex;gap:8px;justify-content:center;margin:6px 0}
+.streak i{width:22px;height:22px;border-radius:50%;background:#e5e8ef;display:inline-block}
+.streak i.on{background:var(--ok)}
+.remind{background:var(--warn-l);border:1px solid #ffd8a8;border-radius:12px;padding:10px 12px;margin-top:10px}
+/* charts */
+.bars .b{display:grid;grid-template-columns:7.5em 1fr 2.5em;gap:8px;align-items:center;margin:6px 0;font-size:14px}
+.bars .b .lb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .track{background:var(--bg);border-radius:6px;height:16px;overflow:hidden}
+.bars .fill{height:100%;background:var(--pri);border-radius:6px}
+.stack{display:flex;height:18px;border-radius:9px;overflow:hidden;background:var(--bg)}
+.vbars{display:flex;align-items:flex-end;gap:8px;height:190px;padding-top:10px;overflow-x:auto}
+.vbars .c{flex:1 0 46px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:12px}
+.vbars .c .bar{width:26px;background:var(--pri);border-radius:6px 6px 0 0}
+.vbars .c .l{color:var(--sub);text-align:center;line-height:1.2;margin-top:4px;max-width:70px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+/* thumbs */
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb button{position:absolute;top:2px;right:2px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:16px;line-height:1}
+.uncertain{background:#fff3bf}
+/* modal */
+.mask{position:fixed;inset:0;background:rgba(18,24,38,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:700px){.mask{align-items:center}}
+.modal{background:#fff;width:100%;max-width:560px;max-height:90vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px}
+@media(min-width:700px){.modal{border-radius:18px}}
+.modal .acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav) + 20px);transform:translateX(-50%);background:#1d2433;color:#fff;padding:10px 16px;border-radius:12px;z-index:60;max-width:90vw;font-size:15px}
+.busy{position:fixed;inset:0;background:rgba(255,255,255,.88);z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px}
+.spin{width:44px;height:44px;border:4px solid #dbe6ff;border-top-color:var(--pri);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.steps li:first-child{border-top:0}
+.steps .n{width:30px;height:30px;border-radius:50%;background:var(--pri-l);color:var(--pri);font-weight:800;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.steps .n.done{background:var(--ok);color:#fff}
+.steps .tx{flex:1}
+.stars{color:#f5a400;letter-spacing:1px}
+.seg{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px}
+.seg button{flex:0 0 auto;min-height:40px;border-radius:20px;border:1px solid var(--line);background:#fff;padding:0 14px}
+.seg button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.filters{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+@media(min-width:760px){.filters{grid-template-columns:repeat(5,1fr)}}
+.gradeRow{display:flex;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.gradeRow .main{flex:1;min-width:0}
+.gradeRow .btn.on-ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.gradeRow .btn.on-bad{background:var(--bad);color:#fff;border-color:var(--bad)}
+.gradeRow .btn.on-skip{background:#6b7280;color:#fff}
+/* print */
+#printArea{display:none}
+.pv{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;color:#000}
+.pv h1{text-align:center;font-size:20px}
+.pv .q{margin:0 0 14px;page-break-inside:avoid}
+.pv .q .st{white-space:pre-wrap}
+.pv .blank{height:70px;border-bottom:1px dashed #bbb}
+.pv .ansSec{page-break-before:always;margin-top:24px}
+.pv .meta{font-size:12px;color:#555}
+@media print{
+ body{background:#fff}
+ body>*:not(#printArea){display:none!important}
+ #printArea{display:block!important}
+ #printArea .pv{border:0;padding:0}
+}
+</style></head>
+<body><div id="app"></div>
+<noscript>需要开启 JavaScript 才能使用。</noscript>
+<script>'use strict';
+/* ========== 工具 ========== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const clone = o => JSON.parse(JSON.stringify(o));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ========== 日期（支持 ?today=YYYY-MM-DD 调试快进） ========== */
+function pad(n) { return String(n).padStart(2, '0'); }
+function fmtD(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function parseD(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function debugToday() {
+  try {
+    const q = new URLSearchParams(location.search).get('today');
+    if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) return q;
+    const l = LS.getItem('ctb.debugToday');
+    if (l && /^\d{4}-\d{2}-\d{2}$/.test(l)) return l;
+  } catch (e) { }
+  return null;
+}
+function today() { return debugToday() || fmtD(new Date()); }
+function addDays(s, n) { const d = parseD(s); d.setDate(d.getDate() + n); return fmtD(d); }
+function diffDays(a, b) { return Math.round((parseD(a) - parseD(b)) / 86400000); } // a-b
+function weekStart(s) { const d = parseD(s); const w = (d.getDay() + 6) % 7; d.setDate(d.getDate() - w); return fmtD(d); }
+const WD = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+function wdName(s) { return WD[(parseD(s).getDay() + 6) % 7]; }
+function md(s) { if (!s) return '—'; const [, m, d] = s.split('-'); return Number(m) + '/' + Number(d); }
+
+/* ========== 存储兜底（预览窗口等受限环境） ========== */
+const LS = (() => { try { const k = '__t'; window.localStorage.setItem(k, '1'); window.localStorage.removeItem(k); return window.localStorage; } catch (e) { const m = {}; return { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: k => { delete m[k]; } }; } })();
+
+/* ========== 常量 ========== */
+const STAGES = { '小学': ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级'], '初中': ['七年级', '八年级', '九年级'], '高中': ['高一', '高二', '高三'] };
+const SUBJ_ALL = { '小学': ['语文', '数学', '英语', '道德与法治', '科学'], '初中': ['语文', '数学', '英语', '物理', '化学', '道德与法治', '地理', '生物'], '高中': ['语文', '数学', '英语', '物理', '化学', '政治', '地理', '生物'] };
+const SUBJ_DEF = { '小学': ['语文', '数学', '英语'], '初中': SUBJ_ALL['初中'], '高中': SUBJ_ALL['高中'] };
+const CAUSES = ['知识没掌握', '审题出偏差', '习惯有漏洞'];
+const INTERVALS = [1, 2, 4, 7, 15, 30];
+
+/* ========== IndexedDB ========== */
+const STORES = ['kids', 'exams', 'mistakes', 'pits', 'quizzes', 'actions', 'images', 'kv'];
+const DB = {
+  db: null,
+  mem: null,
+  open() {
+    return new Promise((res, rej) => {
+      let r;
+      try { r = indexedDB.open('ai-ctb', 1); } catch (e) { return rej(e); }
+      r.onupgradeneeded = () => { const db = r.result; STORES.forEach(s => { if (!db.objectStoreNames.contains(s)) db.createObjectStore(s, { keyPath: 'id' }); }); };
+      r.onsuccess = () => { DB.db = r.result; res(); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  useMem() { DB.mem = {}; STORES.forEach(s => DB.mem[s] = new Map()); },
+  _req(store, mode, fn) {
+    if (DB.mem) {
+      const m = DB.mem[store]; let out;
+      const st = { getAll: () => ({ result: [...m.values()].map(o => JSON.parse(JSON.stringify(o))) }), get: id => ({ result: m.has(id) ? JSON.parse(JSON.stringify(m.get(id))) : undefined }), put: o => { m.set(o.id, JSON.parse(JSON.stringify(o))); }, delete: id => { m.delete(id); }, clear: () => { m.clear(); } };
+      const q = fn(st); if (q) out = q.result; return Promise.resolve(out);
+    }
+    return new Promise((res, rej) => {
+      const t = DB.db.transaction(store, mode); const st = t.objectStore(store); let out;
+      const q = fn(st); if (q) q.onsuccess = () => { out = q.result; };
+      t.oncomplete = () => res(out); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+  },
+  all(s) { return DB._req(s, 'readonly', st => st.getAll()); },
+  get(s, id) { return DB._req(s, 'readonly', st => st.get(id)); },
+  put(s, o) { return DB._req(s, 'readwrite', st => st.put(o)); },
+  putMany(s, arr) { return DB._req(s, 'readwrite', st => { arr.forEach(o => st.put(o)); }); },
+  del(s, id) { return DB._req(s, 'readwrite', st => st.delete(id)); },
+  delMany(s, ids) { return DB._req(s, 'readwrite', st => { ids.forEach(id => st.delete(id)); }); },
+  clear(s) { return DB._req(s, 'readwrite', st => st.clear()); }
+};
+
+/* ========== 状态 ========== */
+const S = { kids: [], exams: [], mistakes: [], pits: [], quizzes: [], actions: [], kv: {}, kidId: null, route: 'home', params: {}, draft: null, play: null, redo: null, libSel: new Set(), libF: {} };
+async function loadAll() {
+  for (const s of ['kids', 'exams', 'mistakes', 'pits', 'quizzes', 'actions']) S[s] = await DB.all(s);
+  S.kv = {}; (await DB.all('kv')).forEach(r => S.kv[r.id] = r.v);
+  S.mistakes.forEach(normM);
+  const saved = LS.getItem('ctb.kid');
+  S.kidId = S.kids.find(k => k.id === saved) ? saved : (S.kids[0] && S.kids[0].id) || null;
+}
+async function save(store, o) { const arr = S[store]; const i = arr.findIndex(x => x.id === o.id); if (i >= 0) arr[i] = o; else arr.push(o); await DB.put(store, o); }
+async function remove(store, id) { S[store] = S[store].filter(x => x.id !== id); await DB.del(store, id); }
+async function kvSet(id, v) { S.kv[id] = v; await DB.put('kv', { id, v }); }
+const kid = () => S.kids.find(k => k.id === S.kidId) || null;
+const kidById = id => S.kids.find(k => k.id === id);
+const pitById = id => S.pits.find(p => p.id === id);
+const examById = id => S.exams.find(e => e.id === id);
+const mById = id => S.mistakes.find(m => m.id === id);
+const kidMs = (kidId = S.kidId) => S.mistakes.filter(m => m.kidId === kidId);
+
+/* ========== 设置 ========== */
+const SET_DEF = { apiKey: '', baseUrl: 'https://api.deepseek.com', model: 'deepseek-flash', thinking: 'auto', masterN: 3, requireExplain: true, parentTitle: '妈妈', remindTime: '19:30', notify: false };
+function getSet() { try { return Object.assign({}, SET_DEF, JSON.parse(LS.getItem('ctb.settings') || '{}')); } catch (e) { return Object.assign({}, SET_DEF); } }
+function setSet(p) { LS.setItem('ctb.settings', JSON.stringify(Object.assign(getSet(), p))); }
+const hasKey = () => !!getSet().apiKey.trim();
+
+/* ========== 复习排期核心 ========== */
+function normM(m) {
+  m.attempts = m.attempts || []; m.explains = m.explains || []; m.stage = m.stage || 0; m.okStreak = m.okStreak || 0;
+  if (m.mastered === undefined) m.mastered = false;
+  if (m.due === undefined) m.due = null;
+  return m;
+}
+function wrongCount(m) { return 1 + m.attempts.filter(a => !a.ok).length; } // 考试那次算 1 次错
+const explained = m => m.explains.some(e => e.ok);
+function statusOf(m) {
+  if (m.archived) return '已归档';
+  if (m.mastered) return '已掌握';
+  if (m.hard) return '总错';
+  if (!m.attempts.length) return '未做过';
+  return '复习中';
+}
+const STATUS_CLS = { '未做过': 't-new', '复习中': 't-rev', '总错': 't-hard', '已掌握': 't-done', '已归档': '' };
+function statusTag(m) { const s = statusOf(m); return `<span class="tag ${STATUS_CLS[s]}">${s}</span>`; }
+function nextInterval(m) { const i = m.hard ? Math.max(0, m.stage - 1) : m.stage; return INTERVALS[Math.min(i, INTERVALS.length - 1)]; }
+/** 新错题保存：默认视为当天已订正，从次日开始排期 */
+function scheduleNew(m, fromDate) { m.stage = 0; m.okStreak = 0; m.hard = false; m.mastered = false; m.correctedAt = fromDate; m.due = m.archived ? null : addDays(fromDate, 1); m.pinned = false; }
+/** 是否满足掌握条件：连续间隔做对 N 次（默认 3），且（若开启）至少讲通 1 次；没讲通时最多多做 2 次后也判掌握，避免卡死 */
+function canMaster(m) {
+  const st = getSet(); const N = st.masterN || 3;
+  if (m.okStreak < N) return false;
+  if (!st.requireExplain || explained(m)) return true;
+  return m.okStreak >= N + 2;
+}
+function needExplainHint(m) { const st = getSet(); return st.requireExplain && !m.mastered && !explained(m) && m.okStreak >= (st.masterN || 3) - 1; }
+/** 记录一次重做；opt.explain: true 讲通 / false 没讲清 / null 未讲 */
+function recordAttempt(m, ok, opt = {}) {
+  const date = opt.date || today();
+  const due = m.due;
+  m.attempts.push({ date, ok: !!ok, sec: opt.sec || null, due, late: due ? date > due : false, src: opt.src || 'app' });
+  if (ok && (opt.explain === true || opt.explain === false)) m.explains.push({ date, ok: opt.explain });
+  m.pinned = false;
+  if (ok) {
+    m.okStreak += 1;
+    if (canMaster(m)) { m.mastered = true; m.masteredAt = date; m.due = null; }
+    else { m.stage = Math.min(m.stage + 1, INTERVALS.length - 1); m.due = addDays(date, nextInterval(m)); }
+  } else {
+    m.okStreak = 0; m.stage = 0; m.hard = true; m.due = addDays(date, 1);
+  }
+  return m;
+}
+/** 事后补记“讲通了” */
+function addExplain(m, date = today()) { m.explains.push({ date, ok: true }); if (!m.mastered && canMaster(m)) { m.mastered = true; m.masteredAt = date; m.due = null; } }
+function restoreM(m, date = today()) { m.mastered = false; m.masteredAt = null; m.archived = false; m.okStreak = 0; m.stage = 0; m.due = date; m.pinned = false; }
+function histLine(m) {
+  const n = m.attempts.length, ok = m.attempts.filter(a => a.ok).length, last = m.attempts[n - 1];
+  const dots = m.attempts.slice(-8).map(a => `<i class="${a.ok ? 'o' : 'x'}" title="${a.date} ${a.ok ? '对' : '错'}"></i>`).join('');
+  const next = m.archived ? '已归档' : m.mastered ? '不再安排' : md(m.due);
+  return `<div class="hist">已做 <b>${n}</b> 次 · 对 <b>${ok}</b> 次 · 上次 <b>${last ? md(last.date) : '—'}</b> · 下次 <b>${next}</b> ${dots ? `<span class="dots">${dots}</span>` : ''}${explained(m) ? ' · <b style="color:var(--ok)">讲通 ✓</b>' : ''}${needExplainHint(m) ? `<br><span style="color:#a35a00">还差一次“讲给${esc(getSet().parentTitle || '妈妈')}听”讲通，才算真正掌握</span>` : ''}</div>`;
+}
+/** 已做过的条目（某天） */
+function attemptsOn(kidId, date) {
+  const out = [];
+  kidMs(kidId).forEach(m => m.attempts.forEach((a, i) => { if (a.date === date) out.push({ m, a, i }); }));
+  return out;
+}
+/**
+ * 生成计划：从 today 到 to，每天按上限分配；过期优先、总错优先、科目均衡；排不下顺延。
+ * 返回 {days:{date:[{m,carried,overdue}]}, overdue:n}
+ */
+function buildPlan(kidId, to) {
+  const T = today(); const k = kidById(kidId); const cap = (k && k.cap) || 5;
+  let remaining = kidMs(kidId).filter(m => !m.mastered && !m.archived && m.due);
+  const overdueIds = new Set(remaining.filter(m => m.due < T).map(m => m.id));
+  const days = {};
+  for (let d = T; d <= to; d = addDays(d, 1)) {
+    const list = [];
+    // 家长拖动/改期固定到这一天的，不占上限
+    remaining.filter(m => m.pinned && m.due === d).forEach(m => list.push({ m, pinned: true }));
+    let left = cap;
+    if (d === T) left -= new Set(attemptsOn(kidId, T).map(x => x.m.id)).size;
+    const tier = m => m.due < T ? 0 : (m.hard ? 1 : 2);
+    let cand = remaining.filter(m => !(m.pinned && m.due === d) && m.due <= d && !(m.pinned && m.due > d))
+      .sort((a, b) => tier(a) - tier(b) || (a.due < b.due ? -1 : a.due > b.due ? 1 : 0) || ((a.createdAt || 0) - (b.createdAt || 0)));
+    // 交错练习：同一天尽量不同科目、不同坑、不同考试
+    const cs = {}, cp = {}, ce = {};
+    const inc = m => { cs[m.subject] = (cs[m.subject] || 0) + 1; cp[m.pitId || m.id] = (cp[m.pitId || m.id] || 0) + 1; ce[m.examId] = (ce[m.examId] || 0) + 1; };
+    list.forEach(x => inc(x.m));
+    const key = m => [tier(m), cs[m.subject] || 0, cp[m.pitId || m.id] || 0, ce[m.examId] || 0];
+    const less = (a, b) => { for (let i = 0; i < a.length; i++) { if (a[i] !== b[i]) return a[i] < b[i]; } return false; };
+    while (left > 0 && cand.length) {
+      let bi = 0, bk = key(cand[0]);
+      for (let i = 1; i < cand.length; i++) { const kk = key(cand[i]); if (less(kk, bk)) { bi = i; bk = kk; } }
+      const m = cand.splice(bi, 1)[0];
+      inc(m); left--;
+      list.push({ m, carried: m.due < d, overdue: overdueIds.has(m.id) });
+    }
+    const used = new Set(list.map(x => x.m.id));
+    remaining = remaining.filter(m => !used.has(m.id));
+    days[d] = list;
+  }
+  return { days, overdue: overdueIds.size };
+}
+function todayPlan(kidId) { const T = today(); return buildPlan(kidId, T).days[T] || []; }
+/** 每天第一次打开时记录当天计划快照，用于完成率统计 */
+async function snapshotPlans() {
+  const T = today();
+  for (const k of S.kids) {
+    const key = `plan:${k.id}:${T}`;
+    if (!S.kv[key]) {
+      const ids = todayPlan(k.id).map(x => x.m.id);
+      const done = attemptsOn(k.id, T).map(x => x.m.id);
+      await kvSet(key, [...new Set([...done, ...ids])]);
+    }
+  }
+}
+function weekStats(kidId, ws = weekStart(today())) {
+  const T = today(), we = addDays(ws, 6);
+  let planned = 0, done = 0;
+  for (let d = ws; d <= we && d <= T; d = addDays(d, 1)) {
+    const ids = S.kv[`plan:${kidId}:${d}`] || [];
+    ids.forEach(id => { planned++; const m = mById(id); if (m && m.attempts.some(a => a.date >= d && a.date <= we)) done++; });
+  }
+  const atts = []; kidMs(kidId).forEach(m => m.attempts.forEach(a => { if (a.date >= ws && a.date <= we) atts.push(a); }));
+  const onTime = atts.filter(a => !a.late).length;
+  const newMastered = kidMs(kidId).filter(m => m.mastered && m.masteredAt >= ws && m.masteredAt <= we).length;
+  return { planned, done, rate: planned ? Math.round(done / planned * 100) : null, attempts: atts.length, onTimeRate: atts.length ? Math.round(onTime / atts.length * 100) : null, newMastered };
+}
+function hardList(kidId) { return kidMs(kidId).filter(m => m.hard && !m.mastered && !m.archived).sort((a, b) => wrongCount(b) - wrongCount(a)); }
+
+/* ========== 日历 .ics ========== */
+function icsEsc(s) { return String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n'); }
+function icsFold(line) {
+  const enc = new TextEncoder(); const out = []; let cur = '', bytes = 0;
+  for (const ch of line) { const b = enc.encode(ch).length; if (bytes + b > 74) { out.push(cur); cur = ' ' + ch; bytes = 1 + b; } else { cur += ch; bytes += b; } }
+  out.push(cur); return out.join('\r\n');
+}
+function makeICS(kids, time = '19:30', startDate = today()) {
+  const [hh, mm] = time.split(':');
+  const dt = d => d.replace(/-/g, '') + 'T' + pad(hh) + pad(mm) + '00';
+  const now = new Date(); const stamp = now.getUTCFullYear() + pad(now.getUTCMonth() + 1) + pad(now.getUTCDate()) + 'T' + pad(now.getUTCHours()) + pad(now.getUTCMinutes()) + pad(now.getUTCSeconds()) + 'Z';
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AI错题本//CN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:AI错题本提醒',
+    'BEGIN:VTIMEZONE', 'TZID:Asia/Shanghai', 'BEGIN:STANDARD', 'DTSTART:19700101T000000', 'TZOFFSETFROM:+0800', 'TZOFFSETTO:+0800', 'TZNAME:CST', 'END:STANDARD', 'END:VTIMEZONE'];
+  const ev = (uidS, start, rrule, summary, desc) => {
+    L.push('BEGIN:VEVENT', 'UID:' + uidS + '@ai-ctb', 'DTSTAMP:' + stamp, 'DTSTART;TZID=Asia/Shanghai:' + start, 'DURATION:PT15M', 'RRULE:' + rrule,
+      'SUMMARY:' + icsEsc(summary), 'DESCRIPTION:' + icsEsc(desc), 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc(summary), 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
+  };
+  kids.forEach(k => ev('daily-' + k.id, dt(startDate), 'FREQ=DAILY', `${k.name} · 今日错题复习`, `打开 AI 错题本查看今日错题（${k.name}）`));
+  let sun = startDate; while (parseD(sun).getDay() !== 0) sun = addDays(sun, 1);
+  const s2 = sun.replace(/-/g, '') + 'T200000';
+  L.push('BEGIN:VEVENT', 'UID:weekly-plan@ai-ctb', 'DTSTAMP:' + stamp, 'DTSTART;TZID=Asia/Shanghai:' + s2, 'DURATION:PT15M', 'RRULE:FREQ=WEEKLY;BYDAY=SU',
+    'SUMMARY:' + icsEsc('看下周错题计划'), 'DESCRIPTION:' + icsEsc('打开 AI 错题本，看看下周每天要做哪些错题'), 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + icsEsc('看下周错题计划'), 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT');
+  L.push('END:VCALENDAR');
+  return L.map(icsFold).join('\r\n') + '\r\n';
+}
+function download(name, text, type = 'application/json') {
+  const blob = new Blob([text], { type }); const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+/* ========== AI ========== */
+class AIError extends Error { constructor(msg, kind) { super(msg); this.kind = kind; } }
+let aiAbort = null;
+function ctxLine(k, subject) {
+  return `学生：${k.stage}${k.grade}；科目：${subject}。\n要求：内容必须符合中国大陆现行${k.stage}${k.grade}${subject}教材与课程标准，不超纲；用简体中文；数学和理科符号用 Unicode（如 ½ ¾ ² ³ √ × ÷ ≤ ≥ ≠ π ° ∠ △ →），不要用 LaTeX；描述错因时禁止使用“粗心”“马虎”“不仔细”“大意”这类笼统词，必须具体到哪一步、哪个字、哪个符号出了问题。`;
+}
+async function aiCall({ system, user, images = [], think = false, maxTokens = 8000, signal }) {
+  const st = getSet();
+  if (!st.apiKey.trim()) throw new AIError('还没有填 API Key，请先到“设置”里填写。', 'nokey');
+  let url = st.baseUrl.trim().replace(/\/+$/, ''); if (!/\/chat\/completions$/.test(url)) url += '/chat/completions';
+  const content = images.length ? [{ type: 'text', text: user }, ...images.map(u => ({ type: 'image_url', image_url: { url: u } }))] : user;
+  const body = { model: st.model.trim() || 'deepseek-flash', messages: [{ role: 'system', content: system }, { role: 'user', content }], response_format: { type: 'json_object' }, max_tokens: maxTokens, stream: false };
+  if (st.thinking !== 'omit') body.thinking = { type: (st.thinking === 'on' || (st.thinking === 'auto' && think)) ? 'enabled' : 'disabled' };
+  let resp;
+  try {
+    resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + st.apiKey.trim() }, body: JSON.stringify(body), signal });
+  } catch (e) {
+    if (e.name === 'AbortError') throw new AIError('已取消，或 AI 回复超时（图片多时可少传几张再试）。', 'abort');
+    throw new AIError('连不上 AI 服务：可能是网络断了，或浏览器拦截了跨域请求（CORS）。请检查网络；实在不行可以用“手动粘贴 AI 结果”。', 'network');
+  }
+  let txt = ''; try { txt = await resp.text(); } catch (e) { }
+  if (!resp.ok) {
+    let msg = ''; try { msg = JSON.parse(txt).error.message; } catch (e) { msg = txt.slice(0, 160); }
+    const map = {
+      401: 'API Key 不对或已失效。请到“设置”重新粘贴（注意前后不要带空格）。',
+      402: 'DeepSeek 账户余额不足，请到 platform.deepseek.com 充值后再试。',
+      429: '请求太频繁或并发超限，等一分钟再试。',
+      400: '请求被拒绝：' + msg + '（请检查“模型名”是否正确、该模型是否支持看图）',
+      422: '参数有误：' + msg,
+      404: '地址不对（404），请检查设置里的 Base URL。',
+      500: 'AI 服务器出错了，稍后再试。', 502: 'AI 服务器暂时不可用，稍后再试。', 503: 'AI 服务器繁忙，稍后再试。'
+    };
+    throw new AIError(map[resp.status] || `AI 服务返回错误 ${resp.status}：${msg}`, 'http' + resp.status);
+  }
+  let data; try { data = JSON.parse(txt); } catch (e) { throw new AIError('AI 返回的内容无法读取。', 'parse'); }
+  const ch = data.choices && data.choices[0];
+  return { text: (ch && ch.message && ch.message.content) || '', finish: ch && ch.finish_reason };
+}
+function parseJSONLoose(t) {
+  let s = String(t || '').trim();
+  s = s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  try { return JSON.parse(s); } catch (e) { }
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a >= 0 && b > a) { try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { } }
+  return null;
+}
+/** 调用并解析 JSON，失败重试一次；validate 返回规范化后的结果或抛错 */
+async function aiJSON(opts, validate) {
+  let lastErr = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const o = Object.assign({}, opts);
+    if (attempt === 1) o.user = opts.user + '\n\n注意：上一次的输出不是合法 JSON 或缺少字段。这次只输出一个完整的 JSON 对象，不要任何其他文字。';
+    const r = await aiCall(o);
+    const j = parseJSONLoose(r.text);
+    if (j) { try { return validate ? validate(j) : j; } catch (e) { lastErr = e; continue; } }
+    lastErr = new AIError(r.finish === 'length' ? 'AI 输出太长被截断了，请少传几张图片再试。' : 'AI 返回的结果格式不对，已重试仍失败。可以再试一次，或用“手动粘贴”。', 'parse');
+  }
+  throw lastErr;
+}
+/** 带忙碌遮罩和网络兜底（手动粘贴）的统一入口 */
+async function runAI(label, opts, validate) {
+  aiAbort = new AbortController();
+  const timer = setTimeout(() => aiAbort && aiAbort.abort(), 240000);
+  busy(label + '<br><span class="muted small">通常需要 10–60 秒</span>', true);
+  try { return await aiJSON(Object.assign({ signal: aiAbort.signal }, opts), validate); }
+  catch (e) {
+    if (e.kind === 'network') {
+      busy(false);
+      const pasted = await pasteFallback(opts, e.message);
+      if (pasted) return validate ? validate(pasted) : pasted;
+      return null;
+    }
+    throw e;
+  }
+  finally { clearTimeout(timer); busy(false); aiAbort = null; }
+}
+function promptText(opts) { return `【系统要求】\n${opts.system}\n\n【任务】\n${opts.user}`; }
+
+/* ========== 弹窗 / 提示 / 忙碌 ========== */
+function modal({ title = '', body = '', buttons = [{ text: '好的', cls: 'pri', value: true }], onOpen }) {
+  return new Promise(res => {
+    const m = document.createElement('div'); m.className = 'mask';
+    m.innerHTML = `<div class="modal" role="dialog" aria-modal="true">${title ? `<h2>${title}</h2>` : ''}<div class="mbody">${body}</div><div class="acts">${buttons.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}">${b.text}</button>`).join('')}</div></div>`;
+    document.body.appendChild(m);
+    const close = v => { m.remove(); res(v); };
+    m.addEventListener('click', e => {
+      const b = e.target.closest('.acts [data-i]');
+      if (b) { const bt = buttons[+b.dataset.i]; if (bt.check && !bt.check(m)) return; close(typeof bt.value === 'function' ? bt.value(m) : bt.value); }
+      else if (e.target === m) close(null);
+    });
+    if (onOpen) onOpen(m);
+  });
+}
+const confirmBox = (title, body, okText = '确定', cls = 'pri') => modal({ title, body: `<p>${body}</p>`, buttons: [{ text: '取消', value: false }, { text: okText, cls, value: true }] });
+const alertBox = (title, body) => modal({ title, body: `<p>${body}</p>` });
+let toastT;
+function toast(msg) { let t = $('.toast'); if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); } t.textContent = msg; clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 2600); }
+function busy(html, cancellable) {
+  let b = $('.busy');
+  if (html === false) { if (b) b.remove(); return; }
+  if (!b) { b = document.createElement('div'); b.className = 'busy'; document.body.appendChild(b); }
+  b.innerHTML = `<div class="spin"></div><div style="font-weight:600">${html}</div>${cancellable ? '<button class="btn" id="busyCancel">取消</button>' : ''}`;
+  const c = $('#busyCancel', b); if (c) c.onclick = () => aiAbort && aiAbort.abort();
+}
+function pasteFallback(opts, why) {
+  const pt = promptText(opts);
+  return modal({
+    title: '手动粘贴 AI 结果',
+    body: `<p class="muted">${esc(why)}</p><ol class="small"><li>点“复制提示词”，粘贴到 DeepSeek 网页版或 App${opts.images && opts.images.length ? '（同时上传卷子照片）' : ''}；</li><li>把 AI 回复的 JSON 整段复制，粘贴到下面。</li></ol>
+      <button class="btn sm" id="cpPrompt">复制提示词</button>
+      <label class="f">粘贴 AI 返回的 JSON</label><textarea id="pasteJson" rows="6" placeholder='{"mistakes":[...]}'></textarea><p class="small" id="pasteErr" style="color:var(--bad)"></p>`,
+    buttons: [{ text: '取消', value: null }, { text: '使用这个结果', cls: 'pri', check: m => { const j = parseJSONLoose($('#pasteJson', m).value); if (!j) { $('#pasteErr', m).textContent = '没能读出 JSON，请确认复制完整（以 { 开头、} 结尾）。'; return false; } return true; }, value: m => parseJSONLoose($('#pasteJson', m).value) }],
+    onOpen: m => { $('#cpPrompt', m).onclick = () => copyText(pt); }
+  });
+}
+async function copyText(t) { try { await navigator.clipboard.writeText(t); toast('已复制'); } catch (e) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('已复制'); } catch (e2) { toast('复制失败，请手动选择复制'); } ta.remove(); } }
+async function showAIError(e) { await alertBox('AI 出了点状况', esc(e.message || String(e))); }
+
+/* 粗心类错因校验 */
+function vagueCause(s) {
+  const t = String(s || '').replace(/[\s，。,.!！、了的太很有点就我]/g, '');
+  const stripped = t.replace(/粗心|马虎|不仔细|不认真|大意|没注意|不细心|疏忽|看错|算错|写错/g, '');
+  return !t || stripped.length < 3;
+}
+
+/* ========== 图片压缩 ========== */
+function compressImage(file, maxSide = 1600, q = 0.85) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = () => {
+      let { width: w, height: h } = img; const s = Math.min(1, maxSide / Math.max(w, h));
+      w = Math.round(w * s); h = Math.round(h * s);
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', q));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('图片读不出来（格式不支持？）')); };
+    img.src = url;
+  });
+}
+
+/* ========== AI 任务：提示词与校验 ========== */
+const JSON_RULE = '只输出 JSON 对象，不要输出 Markdown 代码块或任何解释文字。';
+function normItem(o) {
+  const s = v => (v === undefined || v === null) ? '' : String(v).trim();
+  let cause = s(o.cause || o.cause_type);
+  if (!CAUSES.includes(cause)) cause = /审题|读题|看题|题意/.test(cause) ? '审题出偏差' : /习惯|书写|抄|草稿|检查|单位/.test(cause) ? '习惯有漏洞' : '知识没掌握';
+  let opts = Array.isArray(o.cause_options) ? o.cause_options.map(s).filter(Boolean).slice(0, 3) : [];
+  return { tmp: uid(), no: s(o.no || o.number), stem: s(o.stem || o.question), wrong: s(o.wrong || o.student_answer), right: s(o.right || o.correct_answer), score: s(o.score || o.lost), kp: s(o.kp || o.knowledge_point), cause, pitfall: s(o.pitfall), explain: s(o.explain || o.analysis), causeOptions: opts, keep: typeof o.keep === 'boolean' ? o.keep : (o.keep === 'false' ? false : o.keep === 'true' ? true : undefined), keepReason: s(o.keep_reason) };
+}
+function taskRecognize(k, subject, images) {
+  return {
+    system: `【任务:识别错题】你是一位经验丰富的中国${k.stage}${subject}老师，擅长看懂孩子的试卷照片并做错因分析。${JSON_RULE}`,
+    user: `${ctxLine(k, subject)}
+请看这些试卷照片，找出所有做错或被扣分的题（依据红叉、扣分、圈改、订正痕迹）。对每道错题输出：
+- no 题号；stem 题干（完整抄录，选择题含选项）；wrong 孩子的错误答案（照片上孩子写的）；right 正确答案；score 扣分（数字，看不出填空字符串）；
+- kp 知识点（教材里的说法，短语）；cause 错因类型，只能是“知识没掌握”“审题出偏差”“习惯有漏洞”之一；
+- pitfall 易错点一句话：具体到哪一步出错（例：“通分时只把分子乘了 3，分母没乘”）；
+- explain 简明解析（2–4 句，讲清正确思路与关键步骤）；
+- cause_options 3 个具体的“我当时可能怎么错的”选项，供孩子自选（每个都要具体，不能是“粗心”）。
+- keep 是否建议收录进错题本（true/false）；keep_reason 一句话理由（10 字以内）。精选原则：优先收录反映知识漏洞、思路错误、反复出现的题；明显是会做但手滑、改一下就对、孩子已经想通的题标 false。每次考试建议收录 3–5 道（错题少于 3 道则全部收录）。
+看不清或不确定的字词在原处标 [?]。
+输出格式：{"exam_title":"卷子标题（看不出填空字符串）","mistakes":[{"no":"3","stem":"...","wrong":"...","right":"...","score":2,"kp":"...","cause":"知识没掌握","pitfall":"...","explain":"...","cause_options":["...","...","..."],"keep":true,"keep_reason":"..."}]}
+如果照片里没有错题，返回 {"exam_title":"","mistakes":[]}。`,
+    images, think: true, maxTokens: 16000
+  };
+}
+function vRecognize(j) { if (!j || !Array.isArray(j.mistakes)) throw new Error('缺少 mistakes'); return { title: j.exam_title || '', items: j.mistakes.map(normItem) }; }
+function taskPits(k, subject, ms, oldPits) {
+  const lines = ms.map((m, i) => `m${i + 1}｜知识点:${m.kp}｜错因:${m.cause}｜易错点:${m.pitfall}｜题干:${m.stem.slice(0, 80)}｜错答:${m.wrong.slice(0, 30)}｜正答:${m.right.slice(0, 30)}`).join('\n');
+  return {
+    system: `【任务:归纳坑】你是${k.stage}${subject}老师，把同一个孩子跨多次考试的错题归纳成“坑”（易错点技能卡）。${JSON_RULE}`,
+    user: `${ctxLine(k, subject)}
+下面是这个孩子在${subject}上的全部错题（编号 m1、m2…）：
+${lines}
+${oldPits.length ? '已有的坑名称（同类请沿用名称）：' + oldPits.map(p => p.name).join('、') : ''}
+请把它们合并归纳成若干个“坑”：同一类思维漏洞放一起，不按题型硬分；每道题必须且只能归入一个坑。每个坑：
+name 坑的名字（6–14 字，孩子看得懂，如“分数通分漏乘分母”）；rule 一句话规则（以后遇到这类题该怎么做，可执行）；stars 难度 1–3；ids 包含的题编号数组。
+输出格式：{"pits":[{"name":"...","rule":"...","stars":2,"ids":["m1","m3"]}]}`,
+    think: true, maxTokens: 8000, _map: ms.map(m => m.id)
+  };
+}
+function vPits(j, map) {
+  if (!j || !Array.isArray(j.pits) || !j.pits.length) throw new Error('缺少 pits');
+  return j.pits.map(p => ({ name: String(p.name || '未命名的坑').slice(0, 30), rule: String(p.rule || ''), stars: Math.min(3, Math.max(1, parseInt(p.stars) || 2)), ids: (p.ids || []).map(x => map[parseInt(String(x).replace(/\D/g, '')) - 1]).filter(Boolean) }));
+}
+const QTYPES = { '语文': '字音字形、词语运用、病句辨析、古诗文理解、阅读理解要点等，做成 4 选 1', '英语': '单项选择、选词填空、句子改错（选出错误处或正确改法）、语法辨析等，做成 4 选 1' };
+function taskQuiz(k, pit, ms, level) {
+  return {
+    system: `【任务:变式闯关】你是${k.stage}${pit.subject}老师，围绕一个易错点出变式练习题。${JSON_RULE}`,
+    user: `${ctxLine(k, pit.subject)}
+坑（易错点）：${pit.name}
+规则：${pit.rule}
+孩子原来错的题：
+${ms.slice(0, 5).map(m => `- ${m.stem.slice(0, 120)}（错答:${m.wrong}；正答:${m.right}）`).join('\n')}
+请出 7 道变式题，专门检验孩子有没有跨过这个坑：换数字、换情境、换问法，但考的是同一个易错点。难度等级 ${level}（1 基础，2 提高，3 挑战）。${QTYPES[pit.subject] ? '题型可以是：' + QTYPES[pit.subject] + '。' : '全部为 4 选 1 单选题。'}
+干扰项要包含孩子容易犯的那个错误答案。每题：q 题干；options 4 个选项文本（不要带 A/B 前缀）；answer 正确选项下标 0–3；explain 解析；steps 关键步骤（1–2 句）；rule 对应规则（一句话）。
+输出格式：{"questions":[{"q":"...","options":["...","...","...","..."],"answer":1,"explain":"...","steps":"...","rule":"..."}]}`,
+    think: false, maxTokens: 8000
+  };
+}
+function vQuiz(j) {
+  if (!j || !Array.isArray(j.questions)) throw new Error('缺少 questions');
+  const qs = j.questions.filter(q => q && q.q && Array.isArray(q.options) && q.options.length === 4 && Number.isInteger(+q.answer) && +q.answer >= 0 && +q.answer < 4)
+    .map(q => { // 打乱选项
+      const idx = [0, 1, 2, 3].sort(() => Math.random() - .5);
+      return { q: String(q.q), options: idx.map(i => String(q.options[i]).replace(/^[A-D][.、．:：]\s*/, '')), answer: idx.indexOf(+q.answer), explain: String(q.explain || ''), steps: String(q.steps || ''), rule: String(q.rule || '') };
+    });
+  if (qs.length < 3) throw new Error('题目太少');
+  return qs;
+}
+function taskDiag(k, summary) {
+  return { system: `【任务:一句话诊断】你是温和、专业的${k.stage}老师，给家长一句话诊断。${JSON_RULE}`, user: `${k.stage}${k.grade}孩子的错题数据：\n${summary}\n请用一句话（不超过 60 字）指出最需要优先解决的问题和具体做法，不要说“粗心”。输出：{"diagnosis":"..."}`, think: false, maxTokens: 1000 };
+}
+function taskActions(k, pits) {
+  return {
+    system: `【任务:本周行动】你是${k.stage}老师，为孩子制定本周可执行的小行动。${JSON_RULE}`,
+    user: `${k.stage}${k.grade}孩子的坑（易错点）：\n${pits.map((p, i) => `p${i + 1}｜${p.subject}｜${p.name}｜规则:${p.rule}｜题数:${p.mistakeIds.length}｜${p.passed ? '已通关' : '未通关'}`).join('\n')}\n请生成 3–5 条本周行动，每条绑定一个坑（优先题多、未通关的），具体可执行、每天 5–10 分钟，给出本周目标次数 target（3–7）。输出：{"actions":[{"pit":"p1","text":"...","target":5}]}`,
+    think: false, maxTokens: 2000
+  };
+}
+
+/* ========== 图标 ========== */
+const IC = {
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>',
+  plan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7 14h3M14 14h3M7 17h3"/></svg>',
+  add: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  lib: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M5 17a3 3 0 013-3h11M9 8h6"/></svg>',
+  pits: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>',
+  board: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>',
+  logo: '<svg viewBox="0 0 32 32"><rect x="3" y="3" width="26" height="26" rx="7" fill="#2f6fed"/><path d="M10 16.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+const NAV = [['home', '今日'], ['plan', '计划'], ['add', '录入'], ['lib', '错题'], ['pits', '闯关'], ['board', '看板']];
+const parentName = () => getSet().parentTitle || '妈妈';
+
+/* ========== 外壳 ========== */
+function shell() {
+  const k = kid();
+  $('#app').innerHTML = `
+  <header class="top"><div class="brand">${IC.logo}<span>AI 错题本</span></div><div class="sp"></div>
+    ${S.kids.length ? `<select class="kidsel" id="kidSel" aria-label="切换孩子">${S.kids.map(x => `<option value="${x.id}" ${x.id === S.kidId ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}<option value="__add">＋ 添加孩子</option></select>` : ''}
+    <button class="iconbtn" data-act="go" data-r="settings" aria-label="设置">${IC.gear}</button></header>
+  <nav class="nav">${NAV.map(([r, t]) => `<button data-act="go" data-r="${r}" class="${navOn(r) ? 'on' : ''}">${IC[r]}<span>${t}</span></button>`).join('')}</nav>
+  <main id="main"></main><div id="printArea"></div>`;
+  const ks = $('#kidSel');
+  if (ks) ks.onchange = async () => { if (ks.value === '__add') { ks.value = S.kidId; await editKid(); } else { S.kidId = ks.value; LS.setItem('ctb.kid', S.kidId); S.play = null; S.redo = null; render(); } };
+}
+function navOn(r) { const map = { redo: 'home', grade: 'plan', print: 'plan', review: 'add', quiz: 'pits' }; return (map[S.route] || S.route) === r; }
+function go(r, params = {}) { S.route = r; S.params = params; try { history.replaceState(null, '', '#' + r); } catch (e) { /* 预览沙箱不允许改地址，忽略 */ } render(); window.scrollTo(0, 0); }
+function render() {
+  shell();
+  const fn = PAGES[S.route] || PAGES.home;
+  if (!kid() && !['home', 'settings'].includes(S.route)) { $('#main').innerHTML = noKid(); return; }
+  $('#main').innerHTML = fn();
+  if (AFTER[S.route]) AFTER[S.route]();
+}
+const noKid = () => `<div class="card"><h2>先建一个孩子档案</h2><p class="muted">错题、计划都按孩子分开记录。</p><button class="btn pri big" data-act="addKid">建孩子档案</button></div>`;
+const AFTER = {};
+const PAGES = {};
+const ACT = {};
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-act]'); if (!el || el.closest('.mask .acts')) return;
+  const f = ACT[el.dataset.act]; if (!f) return;
+  if (el.tagName === 'A') e.preventDefault();
+  try { await f(el, e); } catch (err) { console.warn(err); if (err instanceof AIError) showAIError(err); else alertBox('出错了', esc(err.message || err)); }
+});
+ACT.go = el => go(el.dataset.r, Object.assign({}, el.dataset));
+
+/* ========== 孩子档案 ========== */
+function kidForm(k) {
+  const stage = k.stage || '小学';
+  return `<label class="f">名字或昵称</label><input type="text" id="kName" value="${esc(k.name || '')}" placeholder="例如：大宝">
+  <div class="grid2"><div><label class="f">学段</label><select id="kStage">${Object.keys(STAGES).map(s => `<option ${s === stage ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+  <div><label class="f">年级</label><select id="kGrade">${STAGES[stage].map(g => `<option ${g === k.grade ? 'selected' : ''}>${g}</option>`).join('')}</select></div></div>
+  <label class="f">科目（可勾选）</label><div id="kSubj" class="row">${subjChecks(stage, k.subjects || SUBJ_DEF[stage])}</div>
+  <label class="f">每天最多做几道错题</label><input type="number" id="kCap" min="1" max="30" value="${k.cap || 5}">`;
+}
+function subjChecks(stage, sel) { return SUBJ_ALL[stage].map(s => `<label class="chk"><input type="checkbox" value="${s}" ${sel.includes(s) ? 'checked' : ''}>${s}</label>`).join(''); }
+async function editKid(k0) {
+  const k = k0 ? clone(k0) : {};
+  const r = await modal({
+    title: k0 ? '编辑孩子档案' : '新建孩子档案', body: kidForm(k),
+    buttons: [{ text: '取消', value: null }, { text: '保存', cls: 'pri', check: m => { if (!$('#kName', m).value.trim()) { toast('请填写名字'); return false; } return true; }, value: m => ({ name: $('#kName', m).value.trim(), stage: $('#kStage', m).value, grade: $('#kGrade', m).value, subjects: $$('#kSubj input:checked', m).map(i => i.value), cap: Math.max(1, parseInt($('#kCap', m).value) || 5) }) }],
+    onOpen: m => { $('#kStage', m).onchange = () => { const s = $('#kStage', m).value; $('#kGrade', m).innerHTML = STAGES[s].map(g => `<option>${g}</option>`).join(''); $('#kSubj', m).innerHTML = subjChecks(s, SUBJ_DEF[s]); }; }
+  });
+  if (!r) return;
+  if (!r.subjects.length) r.subjects = SUBJ_DEF[r.stage];
+  const o = Object.assign(k, r); if (!o.id) { o.id = uid(); o.createdAt = Date.now(); }
+  await save('kids', o); S.kidId = o.id; LS.setItem('ctb.kid', o.id); toast('已保存'); render();
+}
+ACT.addKid = () => editKid();
+ACT.editKid = el => editKid(kidById(el.dataset.id));
+ACT.delKid = async el => {
+  const k = kidById(el.dataset.id);
+  if (!await confirmBox('删除孩子档案', `确定删除“${esc(k.name)}”以及TA的所有错题、坑和记录吗？此操作不能撤销。`, '删除', 'bad')) return;
+  await purgeKid(k.id); toast('已删除'); render();
+};
+async function purgeKid(kidId) {
+  const ms = S.mistakes.filter(m => m.kidId === kidId).map(m => m.id), ps = S.pits.filter(p => p.kidId === kidId).map(p => p.id);
+  const ex = S.exams.filter(x => x.kidId === kidId); const imgs = ex.flatMap(x => x.imageIds || []);
+  await DB.delMany('mistakes', ms); await DB.delMany('pits', ps); await DB.delMany('exams', ex.map(x => x.id)); await DB.delMany('images', imgs);
+  const qz = S.quizzes.filter(q => ps.includes(q.pitId)).map(q => q.id); await DB.delMany('quizzes', qz);
+  const ac = S.actions.filter(a => a.kidId === kidId).map(a => a.id); await DB.delMany('actions', ac);
+  const kvk = Object.keys(S.kv).filter(x => x.includes(kidId)); await DB.delMany('kv', kvk); kvk.forEach(x => delete S.kv[x]);
+  await DB.del('kids', kidId);
+  S.mistakes = S.mistakes.filter(m => m.kidId !== kidId); S.pits = S.pits.filter(p => p.kidId !== kidId); S.exams = S.exams.filter(x => x.kidId !== kidId);
+  S.quizzes = S.quizzes.filter(q => !qz.includes(q.id)); S.actions = S.actions.filter(a => a.kidId !== kidId); S.kids = S.kids.filter(x => x.id !== kidId);
+  if (S.kidId === kidId) { S.kidId = S.kids[0] ? S.kids[0].id : null; LS.setItem('ctb.kid', S.kidId || ''); }
+}
+
+/* ========== 首页（今日） ========== */
+function allKidsToday() {
+  return S.kids.map(k => { const p = buildPlan(k.id, today()); const list = p.days[today()] || []; return { k, n: list.length, over: p.overdue }; });
+}
+function todoRow(x, opts = {}) {
+  const m = x.m;
+  return `<div class="todo"><div class="main"><div class="row"><span class="tag t-subj">${esc(m.subject)}</span>${statusTag(m)}${x.overdue ? '<span class="tag t-hard">逾期顺延</span>' : x.carried ? '<span class="tag t-warn">顺延</span>' : ''}${x.pinned ? '<span class="tag">家长改期</span>' : ''}</div>
+    <div class="t1" style="margin-top:4px">${esc(m.no ? m.no + '. ' : '')}${esc(m.stem.split('\n')[0])}</div><div class="muted small">${esc(examById(m.examId)?.name || '')} · 已做 ${m.attempts.length} 次</div></div>
+    ${opts.noBtn ? '' : `<button class="btn sm" data-act="redoOne" data-id="${m.id}">做这题</button>`}</div>`;
+}
+PAGES.home = () => {
+  const k = kid();
+  if (!k) return onboarding();
+  const T = today(); const plan = buildPlan(k.id, T); const list = plan.days[T] || [];
+  const done = attemptsOn(k.id, T);
+  const ws = weekStats(k.id); const hard = hardList(k.id);
+  const all = allKidsToday();
+  const st = getSet();
+  const steps = [!!S.kids.length, hasKey(), S.mistakes.some(m => !m.demo)];
+  return `
+  ${steps.every(Boolean) || LS.getItem('ctb.guideOff') ? '' : guideCard(steps)}
+  ${plan.overdue ? `<div class="banner bad">逾期 ${plan.overdue} 道：之前没做的题已自动顺延，优先排在今天。</div>` : ''}
+  <section class="card hero">
+    <div class="row between"><div><div class="muted">${md(T)} ${wdName(T)} · ${esc(k.name)}今天要做</div><div class="num" id="todayN">${list.length}<span style="font-size:20px"> 道</span></div></div>
+    <div class="muted" style="text-align:right">今天已完成 ${new Set(done.map(d => d.m.id)).size} 道<br>每天上限 ${k.cap || 5} 道</div></div>
+    ${S.kids.length > 1 ? `<div class="muted small" style="margin-top:6px">全家：${all.map(a => `${esc(a.k.name)} ${a.n} 道`).join('、')}</div>` : ''}
+    <div class="row" style="margin-top:12px">${list.length ? `<button class="btn big" data-act="startRedo">开始做题</button>` : `<span style="font-weight:700">今天的题都做完啦！</span>`}
+    <button class="btn sm" data-act="go" data-r="print" data-mode="today" style="background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)">打印今日练习卷</button>
+    <button class="btn sm" data-act="go" data-r="grade" style="background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)">批改登记</button></div>
+  </section>
+  <section class="card"><div class="row between"><h2>今日清单</h2><button class="btn ghost sm" data-act="go" data-r="plan">看周计划</button></div>
+    ${list.length ? list.map(x => todoRow(x)).join('') : '<p class="muted">没有待做的题。新错题录入后，会从第二天开始自动排进计划。</p>'}
+    ${done.length ? `<h3 style="margin-top:12px">今天已做</h3>${done.map(d => `<div class="todo"><div class="main"><span class="tag t-subj">${esc(d.m.subject)}</span> <span class="tag ${d.a.ok ? 't-done' : 't-hard'}">${d.a.ok ? '做对' : '做错'}</span><div class="t1">${esc(d.m.stem.split('\n')[0])}</div></div></div>`).join('')}` : ''}
+  </section>
+  <div class="stats">
+    <div class="stat"><div class="v">${ws.rate === null ? '—' : ws.rate + '%'}</div><div class="k">本周完成率</div></div>
+    <div class="stat"><div class="v">${ws.onTimeRate === null ? '—' : ws.onTimeRate + '%'}</div><div class="k">按时完成率</div></div>
+    <div class="stat"><div class="v">${ws.newMastered}</div><div class="k">本周新掌握</div></div>
+    <div class="stat"><div class="v" style="color:var(--bad)">${hard.length}</div><div class="k">总错题（强化中）</div></div>
+  </div>
+  ${hard.length ? `<section class="card"><h2>总错榜</h2>${hard.slice(0, 5).map(m => `<div class="todo"><div class="main"><div class="row"><span class="tag t-subj">${esc(m.subject)}</span><span class="tag t-hard">错 ${wrongCount(m)} 次</span></div><div class="t1">${esc(m.stem.split('\n')[0])}</div></div>${m.pitId && pitById(m.pitId) ? `<button class="btn sm warnb" data-act="go" data-r="quiz" data-pit="${m.pitId}">去闯关</button>` : ''}</div>`).join('')}</section>` : ''}
+  <div class="row"><button class="btn" data-act="go" data-r="add">拍卷子录错题</button><button class="btn" data-act="manualAdd">手动录题</button></div>`;
+};
+function guideCard(steps) {
+  const it = [['建孩子档案', '姓名、学段、年级', 'addKid', '去建档'], ['填 DeepSeek API Key', '只保存在本机浏览器；不填也能手动录题', 'go:settings', '去填写'], ['拍卷子', '一次拍多张，AI 找出错题', 'go:add', '去拍']];
+  return `<section class="card hl"><div class="row between"><h2>三步开始</h2><button class="btn ghost sm" data-act="guideOff">隐藏</button></div><ul class="steps">
+  ${it.map((s, i) => `<li><span class="n ${steps[i] ? 'done' : ''}">${steps[i] ? '✓' : i + 1}</span><div class="tx"><b>${s[0]}</b><div class="muted small">${s[1]}</div></div>${steps[i] ? '' : s[2].startsWith('go:') ? `<button class="btn sm" data-act="go" data-r="${s[2].slice(3)}">${s[3]}</button>` : `<button class="btn sm" data-act="${s[2]}">${s[3]}</button>`}</li>`).join('')}
+  </ul>${S.kids.some(k => k.demo) ? '' : '<button class="btn ghost sm" data-act="loadDemo">先载入示例数据看看效果</button>'}</section>`;
+}
+ACT.guideOff = () => { LS.setItem('ctb.guideOff', '1'); render(); };
+function onboarding() {
+  return `<section class="card hero"><h1 style="margin:0 0 6px">AI 错题本</h1><p class="muted" style="font-size:15px">拍卷子 → AI 找错因 → 自动排复习计划 → 每天做几道 → 真正掌握。<br>错题不只是整理，更要按时回头做。</p></section>
+  ${guideCard([false, hasKey(), false])}
+  <section class="card"><h2>不想先填资料？</h2><p class="muted">载入示例（小学数学 + 初中物理），看看计划、闯关、看板是什么样。示例可一键清除。</p><button class="btn pri" data-act="loadDemo">载入示例数据</button></section>
+  <section class="card"><h3>错题本的 5 条规矩</h3><ol class="small" style="padding-left:20px;margin:0"><li>别抄题，写“当时怎么错的”。</li><li>别写“粗心”，写具体哪一步歪了。</li><li>订正完隔天重做，做对才算过。</li><li>同类变式连对才算跨过这个坑。</li><li>错题本要回头看——交给“计划”自动安排。</li></ol></section>`;
+}
+
+/* ========== 重做（每日做题） ========== */
+ACT.startRedo = () => { const q = todayPlan(S.kidId).map(x => x.m.id); if (!q.length) return toast('今天没有待做的题'); S.redo = { queue: q, i: 0, shown: false, t0: Date.now(), res: [] }; go('redo'); };
+ACT.redoOne = el => { S.redo = { queue: [el.dataset.id], i: 0, shown: false, t0: Date.now(), res: [] }; go('redo'); };
+PAGES.redo = () => {
+  const R = S.redo; if (!R) return '<p>没有进行中的做题。</p>';
+  if (R.i >= R.queue.length) {
+    const ok = R.res.filter(r => r.ok).length;
+    return `<section class="card" style="text-align:center"><h1>做完啦！</h1><p style="font-size:18px">共 ${R.res.length} 道，做对 <b class="right">${ok}</b> 道，做错 <b style="color:var(--bad)">${R.res.length - ok}</b> 道。</p>
+    <p class="muted">做错的题明天会再出现；做对的题间隔会越来越长。</p>
+    ${R.res.filter(r => !r.ok && mById(r.id) && mById(r.id).pitId).slice(0, 2).map(r => { const p = pitById(mById(r.id).pitId); return p ? `<button class="btn warnb" data-act="go" data-r="quiz" data-pit="${p.id}">去闯关：${esc(p.name)}</button>` : ''; }).join(' ')}
+    <div class="row" style="justify-content:center;margin-top:12px"><button class="btn pri" data-act="go" data-r="home">回首页</button></div></section>`;
+  }
+  const m = mById(R.queue[R.i]); if (!m) { R.i++; return PAGES.redo(); }
+  return `<div class="row between"><span class="muted">第 ${R.i + 1} / ${R.queue.length} 题</span><button class="btn ghost sm" data-act="go" data-r="home">退出</button></div>
+  <section class="card mcard"><div class="row"><span class="tag t-subj">${esc(m.subject)}</span>${statusTag(m)}<span class="tag">${esc(m.kp)}</span></div>
+    <div class="stem" style="font-size:18px">${esc(m.no ? m.no + '. ' : '')}${esc(m.stem)}</div>
+    <p class="muted small">先在纸上做一遍，做完再点“看答案”。</p>
+    <div id="ansBox" class="${R.shown ? '' : 'hidden'}">
+      <div class="ans"><b>正确答案</b><span class="right">${esc(m.right)}</span><b>当时错答</b><span class="wrong">${esc(m.wrong)}</span></div>
+      <p><span class="pitfall">易错点：${esc(m.pitfall)}</span></p><div class="small" style="white-space:pre-wrap">${esc(m.explain)}</div>
+      <div class="row" style="margin-top:12px"><button class="btn ok big" data-act="redoMark" data-ok="1">我做对了</button><button class="btn bad big" data-act="redoMark" data-ok="0">我做错了</button></div>
+    </div>
+    ${R.shown ? '' : '<button class="btn pri big block" data-act="redoShow" style="margin-top:8px">我做完了，看答案</button>'}
+  </section>`;
+};
+ACT.redoShow = () => { S.redo.shown = true; S.redo.sec = Math.round((Date.now() - S.redo.t0) / 1000); render(); };
+ACT.redoMark = async el => {
+  const R = S.redo, m = mById(R.queue[R.i]); const ok = el.dataset.ok === '1';
+  let explain = null;
+  if (ok) explain = await explainStep(m);
+  else {
+    const p = m.pitId && pitById(m.pitId);
+    await modal({ title: '没关系，明天再做一次', body: `<div class="remind"><b>记住这个坑：</b>${esc(m.pitfall)}${p ? `<br><b>规则：</b>${esc(p.rule)}` : ''}</div><p class="muted small">这道题已标记为“总错”，会提高复习频率。</p>`, buttons: p ? [{ text: '下一题', value: 0 }, { text: '去闯关：' + esc(p.name), cls: 'warnb', value: 1 }] : [{ text: '下一题', cls: 'pri', value: 0 }] })
+      .then(v => { if (v === 1) R.goPit = p.id; });
+  }
+  recordAttempt(m, ok, { sec: R.sec, explain });
+  await save('mistakes', m);
+  R.res.push({ id: m.id, ok }); R.i++; R.shown = false; R.t0 = Date.now();
+  if (m.mastered) toast('这道题已掌握，不再排入计划');
+  if (R.goPit) { const p = R.goPit; R.goPit = null; return go('quiz', { pit: p }); }
+  render();
+};
+async function explainStep(m) {
+  const pn = parentName();
+  return modal({
+    title: `讲给${esc(pn)}听`,
+    body: `<p>做对啦！现在用 <b>1 分钟</b> 讲给${esc(pn)}听：</p><ol><li><b>坑在哪？</b>这道题最容易错在哪一步。</li><li><b>下次看到什么信号要警惕？</b>题目里哪个字、哪个条件提醒你“小心这个坑”。</li></ol>
+      <div class="remind small">参考：${esc(m.pitfall)}</div><p class="muted small">${esc(pn)}听完点下面的按钮。</p>`,
+    buttons: [{ text: '先跳过', value: null }, { text: '没讲清', value: false }, { text: '讲通了', cls: 'ok', value: true }]
+  });
+}
+
+/* ========== 周计划 ========== */
+PAGES.plan = () => {
+  const k = kid(), T = today(), ws = weekStart(T), nws = addDays(ws, 7), end = addDays(nws, 6);
+  const plan = buildPlan(k.id, end);
+  const col = (start, title) => {
+    let h = `<div><h2>${title} <span class="muted small">${md(start)}–${md(addDays(start, 6))}</span></h2>`;
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(start, i);
+      if (d < T) {
+        const at = attemptsOn(k.id, d);
+        h += `<div class="day past" data-day="${d}"><h4><span>${WD[i]} ${md(d)}</span><span class="muted small">已做 ${at.length}</span></h4>${at.map(x => `<div class="pi ${x.a.ok ? 'done-ok' : 'done-bad'}"><span class="tag ${x.a.ok ? 't-done' : 't-hard'}">${x.a.ok ? '对' : '错'}</span><span class="tx">${esc(x.m.subject)} · ${esc(x.m.stem.split('\n')[0])}</span></div>`).join('') || '<span class="muted small">没有记录</span>'}</div>`;
+      } else {
+        const list = plan.days[d] || []; const at = d === T ? attemptsOn(k.id, d) : [];
+        h += `<div class="day ${d === T ? 'today' : ''}" data-day="${d}"><h4><span>${WD[i]} ${md(d)}${d === T ? ' · 今天' : ''}</span><span class="muted small">${list.length} 道</span></h4>
+        ${at.map(x => `<div class="pi ${x.a.ok ? 'done-ok' : 'done-bad'}"><span class="tag ${x.a.ok ? 't-done' : 't-hard'}">${x.a.ok ? '对' : '错'}</span><span class="tx">${esc(x.m.subject)} · ${esc(x.m.stem.split('\n')[0])}</span></div>`).join('')}
+        ${list.map(x => `<div class="pi ${x.overdue ? 'late' : ''}" draggable="true" data-mid="${x.m.id}" data-act="planItem" data-id="${x.m.id}"><span class="tag t-subj">${esc(x.m.subject)}</span>${x.m.hard ? '<span class="tag t-hard">总错</span>' : ''}${x.overdue ? '<span class="tag t-hard">逾期</span>' : x.carried ? '<span class="tag t-warn">顺延</span>' : ''}<span class="tx">${esc(x.m.stem.split('\n')[0])}</span></div>`).join('')}</div>`;
+      }
+    }
+    return h + '</div>';
+  };
+  const ws1 = weekStats(k.id);
+  return `<div class="row between"><h1>${esc(k.name)}的复习计划</h1><span class="muted small">每天上限 ${k.cap || 5} 道 <button class="btn ghost sm" data-act="editKid" data-id="${k.id}">修改</button></span></div>
+  ${plan.overdue ? `<div class="banner bad" id="overdueBanner">逾期 ${plan.overdue} 道：已自动顺延，优先排在今天和之后几天。</div>` : '<div class="banner okb">没有逾期的题，保持节奏！</div>'}
+  <div class="row" style="margin-bottom:12px"><button class="btn pri" data-act="go" data-r="print" data-mode="week">生成本周练习卷</button><button class="btn" data-act="go" data-r="print" data-mode="today">今日练习卷</button><button class="btn" data-act="go" data-r="grade">批改登记</button><button class="btn" data-act="exportIcs">导出日历提醒</button></div>
+  <p class="muted small">本周完成率 ${ws1.rate === null ? '—' : ws1.rate + '%'} · 按时完成率 ${ws1.onTimeRate === null ? '—' : ws1.onTimeRate + '%'} · 本周新掌握 ${ws1.newMastered} 道。点题目可改期/跳过；电脑上可直接拖到别的日子。同一天会尽量安排不同科目、不同坑、不同考试的题（交错练习）。</p>
+  <div class="weeks" id="weeks">${col(ws, '本周要做')}${col(nws, '下周要做')}</div>`;
+};
+AFTER.plan = () => {
+  $$('.pi[draggable]').forEach(p => p.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', p.dataset.mid); }));
+  $$('.day:not(.past)').forEach(d => {
+    d.addEventListener('dragover', e => { e.preventDefault(); d.classList.add('over'); });
+    d.addEventListener('dragleave', () => d.classList.remove('over'));
+    d.addEventListener('drop', async e => { e.preventDefault(); d.classList.remove('over'); const id = e.dataTransfer.getData('text/plain'); if (id) await moveTo(id, d.dataset.day); });
+  });
+};
+async function moveTo(id, day) { const m = mById(id); m.due = day; m.pinned = true; await save('mistakes', m); toast(`已改到 ${md(day)} ${wdName(day)}`); render(); }
+ACT.planItem = async el => {
+  const m = mById(el.dataset.id);
+  const v = await modal({
+    title: '安排这道题', body: `<p>${esc(m.stem.split('\n')[0])}</p>${histLine(m)}<label class="f">改到哪天</label><input type="date" id="mvDate" value="${m.due < today() ? today() : m.due}" min="${today()}">`,
+    buttons: [{ text: '关闭', value: null }, { text: '跳过（推到明天）', value: 'skip' }, { text: '移出计划（归档）', value: 'arch' }, { text: '现在做', value: 'do' }, { text: '改期', cls: 'pri', value: mm => 'mv:' + $('#mvDate', mm).value }]
+  });
+  if (!v) return;
+  if (v === 'do') return ACT.redoOne(el);
+  if (v === 'skip') { const base = m.due < today() ? today() : m.due; m.due = addDays(base, 1); m.pinned = true; m.skips = (m.skips || 0) + 1; await save('mistakes', m); toast('已推到 ' + md(m.due)); return render(); }
+  if (v === 'arch') { m.archived = true; m.due = null; await save('mistakes', m); toast('已归档，不再排入计划'); return render(); }
+  if (v.startsWith('mv:') && v.length > 3) return moveTo(m.id, v.slice(3));
+};
+ACT.exportIcs = () => {
+  if (!S.kids.length) return toast('先建孩子档案');
+  const t = getSet().remindTime || '19:30';
+  download('AI错题本提醒.ics', makeICS(S.kids, t), 'text/calendar;charset=utf-8');
+  alertBox('日历提醒已导出', `已为 ${S.kids.map(k => esc(k.name)).join('、')} 生成每天 ${t} 的复习提醒，以及每周日 20:00“看下周计划”。<br><br>在手机上打开这个 .ics 文件即可加入日历。<br><span class="muted small">说明：网页关掉后无法自己推送通知，所以用日历提醒兜底。</span>`);
+};
+
+/* ========== 批改登记 ========== */
+PAGES.grade = () => {
+  const k = kid(); const sh = S.kv['sheet:' + k.id];
+  const src = S.params.src || (sh ? 'sheet' : 'today');
+  let ids = src === 'sheet' && sh ? sh.items.map(x => x.id) : todayPlan(k.id).map(x => x.m.id);
+  ids = ids.filter(id => mById(id) && !mById(id).archived);
+  S.gradeIds = ids; S.gradeMarks = S.gradeMarks || {};
+  return `<h1>批改登记</h1><p class="muted">孩子做完纸质练习卷后，按题点“对 / 错”，一次回填做题记录。</p>
+  <div class="seg">${sh ? `<button data-act="go" data-r="grade" data-src="sheet" class="${src === 'sheet' ? 'on' : ''}">最近的练习卷（${md(sh.date)}，${sh.items.length} 题）</button>` : ''}<button data-act="go" data-r="grade" data-src="today" class="${src === 'today' ? 'on' : ''}">今日计划</button></div>
+  <div class="card"><label class="f">做题日期</label><input type="date" id="gDate" value="${today()}" max="${today()}">
+  ${ids.length ? ids.map((id, i) => { const m = mById(id), mk = S.gradeMarks[id]; return `<div class="gradeRow" data-gid="${id}"><div class="main"><b>${i + 1}.</b> <span class="tag t-subj">${esc(m.subject)}</span> ${esc(m.stem.split('\n')[0])}<div class="small">答案：<span class="right">${esc(m.right)}</span>${m.mastered ? ' <span class="tag t-done">已掌握</span>' : ''}</div></div>
+    <button class="btn sm ${mk === 'ok' ? 'on-ok' : ''}" data-act="gMark" data-id="${id}" data-v="ok">对</button><button class="btn sm ${mk === 'bad' ? 'on-bad' : ''}" data-act="gMark" data-id="${id}" data-v="bad">错</button><button class="btn sm ${mk === 'skip' ? 'on-skip' : ''}" data-act="gMark" data-id="${id}" data-v="skip">没做</button></div>`; }).join('') : '<p class="muted">没有要登记的题。</p>'}
+  ${ids.length ? `<label class="chk" style="margin-top:8px"><input type="checkbox" id="gExplain">做对的题都已讲给${esc(parentName())}听，讲通了</label><button class="btn pri big block" data-act="gSubmit" style="margin-top:8px">提交登记</button>` : ''}</div>`;
+};
+ACT.gMark = el => { S.gradeMarks[el.dataset.id] = el.dataset.v; const row = el.closest('.gradeRow'); $$('.btn', row).forEach(b => b.classList.remove('on-ok', 'on-bad', 'on-skip')); el.classList.add('on-' + el.dataset.v); };
+ACT.gSubmit = async () => {
+  const date = $('#gDate').value || today(); const ex = $('#gExplain').checked; let n = 0, mast = 0;
+  for (const id of S.gradeIds) {
+    const v = S.gradeMarks[id]; if (!v || v === 'skip') continue;
+    const m = mById(id); if (m.mastered) continue;
+    recordAttempt(m, v === 'ok', { date, src: 'sheet', explain: v === 'ok' && ex ? true : null }); await save('mistakes', m); n++; if (m.mastered) mast++;
+  }
+  S.gradeMarks = {};
+  if (!n) return toast('还没有点任何一题');
+  await alertBox('登记完成', `已回填 ${n} 道题的做题记录${mast ? `，其中 ${mast} 道达到“已掌握”` : ''}。做错的题会在第二天再出现。`);
+  go('home');
+};
+
+/* ========== 录入 ========== */
+function newDraft() { const k = kid(); return { kidId: k.id, subject: (k.subjects || [])[0] || '数学', name: '', date: today(), images: [], saveImages: true, items: [] }; }
+PAGES.add = () => {
+  const k = kid(); if (!S.draft || S.draft.kidId !== k.id) S.draft = newDraft(); const D = S.draft;
+  return `<h1>录入错题</h1>
+  <section class="card"><div class="grid2"><div><label class="f">科目</label><select id="dSubj">${k.subjects.map(s => `<option ${s === D.subject ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+  <div><label class="f">考试日期</label><input type="date" id="dDate" value="${D.date}"></div></div>
+  <label class="f">考试名称</label><input type="text" id="dName" value="${esc(D.name)}" placeholder="例如：第三单元测验（可留空，AI 会尝试识别）"></section>
+  <section class="card"><h2>卷子照片</h2><p class="muted small">可一次选多张；会自动压缩到长边 1600 像素。</p>
+  <div class="row"><label class="btn pri big">拍照<input type="file" accept="image/*" capture="environment" id="camIn" class="hidden"></label><label class="btn big">从相册选（可多选）<input type="file" accept="image/*" multiple id="fileIn" class="hidden"></label></div>
+  <div class="thumbs" id="thumbs">${D.images.map((u, i) => `<div class="thumb"><img src="${u}" alt="第${i + 1}张"><button data-act="delImg" data-i="${i}" aria-label="删除">×</button></div>`).join('')}</div>
+  <label class="chk"><input type="checkbox" id="dSaveImg" ${D.saveImages ? 'checked' : ''}>把原图也保存在本机（方便以后对照）</label>
+  <button class="btn pri big block" data-act="recognize" ${D.images.length ? '' : 'disabled'}>AI 识别错题${D.images.length ? `（${D.images.length} 张）` : ''}</button>
+  ${hasKey() ? '' : '<p class="muted small">还没填 API Key：可以先 <a href="#" data-act="go" data-r="settings">去设置</a>，或用下面的手动方式。</p>'}
+  </section>
+  <section class="card"><h2>不用 AI</h2><div class="row"><button class="btn" data-act="manualAdd">手动录题</button><button class="btn" data-act="pasteRec">粘贴 AI 结果 JSON</button></div>
+  <p class="muted small">“粘贴”适合在 DeepSeek 网页版/App 里自己发图识别后，把结果贴回来。</p></section>`;
+};
+function syncDraft() { const D = S.draft; if (!D || !$('#dSubj')) return; D.subject = $('#dSubj').value; D.date = $('#dDate').value || today(); D.name = $('#dName').value.trim(); D.saveImages = $('#dSaveImg').checked; }
+AFTER.add = () => {
+  const onFiles = async inp => {
+    syncDraft(); const fs = Array.from(inp.files || []); if (!fs.length) return;
+    busy(`正在压缩 ${fs.length} 张照片…`);
+    try { for (const f of fs) S.draft.images.push(await compressImage(f)); } catch (e) { toast(e.message); } finally { busy(false); }
+    inp.value = ''; render();
+  };
+  $('#camIn').onchange = e => onFiles(e.target); $('#fileIn').onchange = e => onFiles(e.target);
+  ['dSubj', 'dDate', 'dName', 'dSaveImg'].forEach(id => $('#' + id).addEventListener('change', syncDraft));
+};
+ACT.delImg = el => { syncDraft(); S.draft.images.splice(+el.dataset.i, 1); render(); };
+ACT.recognize = async () => {
+  syncDraft(); const D = S.draft, k = kid();
+  if (!hasKey()) { if (await confirmBox('还没有 API Key', '识别需要 DeepSeek API Key。现在去设置里填写吗？也可以用“粘贴 AI 结果 JSON”。', '去设置')) go('settings'); return; }
+  const chunks = []; for (let i = 0; i < D.images.length; i += 3) chunks.push(D.images.slice(i, i + 3));
+  let items = [], title = '';
+  for (let c = 0; c < chunks.length; c++) {
+    const r = await runAI(`AI 正在看卷子${chunks.length > 1 ? `（第 ${c + 1}/${chunks.length} 批）` : ''}…`, taskRecognize(k, D.subject, chunks[c]), vRecognize);
+    if (!r) return;
+    items = items.concat(r.items); title = title || r.title;
+  }
+  if (!D.name && title) D.name = title;
+  D.items = markKeep(items); D.fromAI = true;
+  if (!items.length) toast('AI 没找到错题，可以手动补题');
+  go('review');
+};
+ACT.pasteRec = async () => {
+  syncDraft(); const k = kid(), D = S.draft;
+  const j = await pasteFallback(taskRecognize(k, D.subject, D.images), '在 DeepSeek 网页版或 App 里识别，然后把结果贴回来。');
+  if (!j) return; let r; try { r = vRecognize(j); } catch (e) { return alertBox('格式不对', 'JSON 里需要有 mistakes 数组。'); }
+  if (!D.name && r.title) D.name = r.title; D.items = markKeep(r.items); D.fromAI = true; go('review');
+};
+ACT.manualAdd = () => { if (!kid()) return editKid(); if (!S.draft || S.draft.kidId !== S.kidId) S.draft = newDraft(); syncDraft(); S.draft.items.push(blankItem()); S.draft.fromAI = false; go('review'); };
+function blankItem() { return { tmp: uid(), no: '', stem: '', wrong: '', right: '', score: '', kp: '', cause: '知识没掌握', pitfall: '', explain: '', causeOptions: [], keep: true }; }
+/** 精选限量：AI 给了 keep 就用；否则按扣分取前 5；默认最多推荐 5 道 */
+function markKeep(items) {
+  items.forEach(it => { if (typeof it.keep !== 'boolean') it.keep = null; });
+  const has = items.some(it => it.keep !== null);
+  if (!has) { const order = [...items].sort((a, b) => (parseFloat(b.score) || 0) - (parseFloat(a.score) || 0)); order.forEach((it, i) => { it.keep = i < 5; it.aiKeep = it.keep; }); }
+  else items.forEach(it => { if (it.keep === null) it.keep = true; it.aiKeep = it.keep; });
+  return items;
+}
+
+/* ========== 核对页 ========== */
+function itemForm(it, i) {
+  const unc = ['stem', 'wrong', 'right'].some(f => String(it[f]).includes('[?]'));
+  return `<div class="card ${it.keep ? 'hl' : ''}" data-i="${i}" style="${it.keep ? '' : 'opacity:.75'}"><div class="row between"><div class="row"><b>第 ${i + 1} 道</b>
+    ${it.aiKeep === true ? '<span class="tag t-done">建议收录</span>' : it.aiKeep === false ? '<span class="tag">可不收</span>' : ''}${unc ? '<span class="tag t-warn">有 [?] 请核对</span>' : ''}${it.keepReason ? `<span class="muted small">${esc(it.keepReason)}</span>` : ''}</div>
+    <div class="row"><label class="chk"><input type="checkbox" data-f="keep" ${it.keep ? 'checked' : ''}>收录进计划</label><button class="btn sm bad" data-act="rvDel" data-i="${i}">删除</button></div></div>
+  <div class="grid2"><div><label class="f">题号</label><input type="text" data-f="no" value="${esc(it.no)}"></div><div><label class="f">扣分</label><input type="text" data-f="score" value="${esc(it.score)}"></div></div>
+  <label class="f">题干</label><textarea data-f="stem" class="${String(it.stem).includes('[?]') ? 'uncertain' : ''}">${esc(it.stem)}</textarea>
+  <div class="grid2"><div><label class="f">孩子的错答</label><input type="text" data-f="wrong" value="${esc(it.wrong)}" class="${String(it.wrong).includes('[?]') ? 'uncertain' : ''}"></div><div><label class="f">正确答案</label><input type="text" data-f="right" value="${esc(it.right)}"></div></div>
+  <div class="grid2"><div><label class="f">知识点</label><input type="text" data-f="kp" value="${esc(it.kp)}"></div><div><label class="f">错因类型</label><select data-f="cause">${CAUSES.map(c => `<option ${c === it.cause ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+  <label class="f">易错点（具体到哪一步，别写“粗心”）</label><input type="text" data-f="pitfall" value="${esc(it.pitfall)}" placeholder="例：通分时分母乘了 3，分子没乘">
+  <label class="f">解析</label><textarea data-f="explain">${esc(it.explain)}</textarea>
+  <label class="f">“我当时怎么错的”备选（每行一个，给孩子自选）</label><textarea data-f="causeOptions" rows="3">${esc((it.causeOptions || []).join('\n'))}</textarea></div>`;
+}
+function readForms() {
+  $$('#rvList > .card[data-i]').forEach(c => {
+    const it = S.draft.items[+c.dataset.i];
+    $$('[data-f]', c).forEach(inp => { const f = inp.dataset.f; it[f] = f === 'keep' ? inp.checked : f === 'causeOptions' ? inp.value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 3) : inp.value.trim(); });
+  });
+}
+PAGES.review = () => {
+  const D = S.draft; if (!D) return '<p>没有待核对的错题。</p>';
+  const kept = D.items.filter(i => i.keep).length;
+  return `<h1>核对错题</h1><p class="muted">${esc(D.subject)} · ${esc(D.name || '未命名考试')} · ${D.date}。${D.fromAI ? 'AI 识别可能有误，请逐题核对，标 [?] 的地方要特别看。' : ''}</p>
+  <div class="banner ${kept > 5 ? 'bad' : 'info'}" id="keepBanner">将收录 ${kept} / ${D.items.length} 道进复习计划。${kept > 5 ? '题太多计划会跑不动——建议每科每次考试只收 3–5 道最有价值的；会做但手滑、已经想通的题可以不收（会存为“已归档”）。' : '精选 3–5 道最有价值的题，计划才跑得动。未勾选的会存为“已归档”，不进计划。'}</div>
+  <div id="rvList">${D.items.map(itemForm).join('')}</div>
+  <div class="row"><button class="btn" data-act="rvAdd">＋ 补一道题</button></div>
+  <div class="card" style="margin-top:12px"><button class="btn pri big block" data-act="rvSave">保存（从明天开始排进计划）</button></div>`;
+};
+AFTER.review = () => { $('#rvList').addEventListener('change', e => { if (e.target.dataset.f === 'keep') { readForms(); render(); } }); };
+ACT.rvAdd = () => { readForms(); S.draft.items.push(blankItem()); render(); };
+ACT.rvDel = el => { readForms(); S.draft.items.splice(+el.dataset.i, 1); render(); };
+ACT.rvSave = async () => {
+  readForms(); const D = S.draft, k = kid();
+  const items = D.items.filter(it => it.stem || it.right);
+  if (!items.length) return toast('至少要有一道题（题干或答案）');
+  const bad = items.find(it => it.pitfall && vagueCause(it.pitfall));
+  if (bad) return alertBox('易错点写得太笼统', `第 ${D.items.indexOf(bad) + 1} 道的易错点“${esc(bad.pitfall)}”太笼统。请写具体哪一步出了问题，比如“把 3/4 看成了 4/3”。`);
+  const ex = { id: uid(), kidId: k.id, subject: D.subject, name: D.name || `${D.subject}测验 ${md(D.date)}`, date: D.date, imageIds: [], createdAt: Date.now() };
+  if (D.saveImages && D.images.length) { for (const u of D.images) { const id = uid(); await DB.put('images', { id, examId: ex.id, data: u }); ex.imageIds.push(id); } }
+  await save('exams', ex);
+  const start = D.date > today() ? D.date : today();
+  const ms = items.map((it, i) => { const m = normM({ id: uid(), kidId: k.id, examId: ex.id, subject: D.subject, no: it.no, stem: it.stem, wrong: it.wrong, right: it.right, score: it.score, kp: it.kp || '未分类', cause: it.cause, pitfall: it.pitfall, explain: it.explain, causeOptions: it.causeOptions || [], archived: !it.keep, createdAt: Date.now() + i }); scheduleNew(m, start); return m; });
+  for (const m of ms) S.mistakes.push(m); await DB.putMany('mistakes', ms);
+  S.draft = null; const kept = ms.filter(m => !m.archived).length;
+  await alertBox('已保存', `收录 ${kept} 道进复习计划（明天开始做），${ms.length - kept} 道归档。`);
+  S.libF = { exam: ex.id }; go('lib');
+};
+
+/* ========== 错题库 ========== */
+function mCard(m) {
+  const p = m.pitId && pitById(m.pitId); const ex = examById(m.examId);
+  return `<article class="card mcard" data-mid="${m.id}"><div class="row between"><div class="row"><label class="chk" style="min-height:32px"><input type="checkbox" data-act="libSel" data-id="${m.id}" ${S.libSel.has(m.id) ? 'checked' : ''} aria-label="选中打印"></label><span class="tag t-subj">${esc(m.subject)}</span>${statusTag(m)}<span class="tag t-${m.cause === '知识没掌握' ? 'new' : m.cause === '审题出偏差' ? 'warn' : 'rev'}">${esc(m.cause)}</span></div><span class="muted small">${esc(ex ? ex.name : '')}${m.no ? ' · 第' + esc(m.no) + '题' : ''}</span></div>
+  <div class="stem">${esc(m.stem)}</div>
+  <div class="ans"><b>错答</b><span class="wrong">${esc(m.wrong || '（空）')}</span><b>正答</b><span class="right">${esc(m.right)}</span></div>
+  <p style="margin:8px 0 4px"><span class="pitfall">易错点：${esc(m.pitfall || '—')}</span> <span class="tag">${esc(m.kp)}</span>${p ? ` <span class="tag">坑：${esc(p.name)}</span>` : ''}</p>
+  ${histLine(m)}
+  <details><summary>看解析</summary><div class="small" style="white-space:pre-wrap">${esc(m.explain || '暂无解析')}</div></details>
+  ${selfEval(m)}
+  <div class="row" style="margin-top:8px">${m.archived ? `<button class="btn sm" data-act="unarch" data-id="${m.id}">收录进计划</button>` : m.mastered ? `<button class="btn sm" data-act="restore" data-id="${m.id}">恢复复习</button>` : `<button class="btn sm pri" data-act="redoOne" data-id="${m.id}">现在做一次</button>`}
+  ${!explained(m) && m.attempts.some(a => a.ok) ? `<button class="btn sm" data-act="addExp" data-id="${m.id}">补记：讲给${esc(parentName())}听讲通了</button>` : ''}
+  ${p && m.hard ? `<button class="btn sm warnb" data-act="go" data-r="quiz" data-pit="${p.id}">去闯关</button>` : ''}
+  <button class="btn sm" data-act="editM" data-id="${m.id}">编辑</button>${ex && ex.imageIds && ex.imageIds.length ? `<button class="btn sm" data-act="showImg" data-id="${ex.id}">原图</button>` : ''}<button class="btn sm ghost" data-act="delM" data-id="${m.id}">删除</button></div></article>`;
+}
+function selfEval(m) {
+  if (m.selfCause && !S.editSelf?.[m.id]) return `<p class="small" style="margin:6px 0">我当时：<b>${esc(m.selfCause)}</b> <button class="btn ghost sm" data-act="selfEdit" data-id="${m.id}">改</button></p>`;
+  const opts = m.causeOptions || [];
+  return `<div class="remind small" data-self="${m.id}"><b>我当时是怎么错的？</b>（孩子自己选或写，别只写“粗心”）
+  ${opts.map((o, i) => `<label class="chk"><input type="radio" name="sc-${m.id}" value="${esc(o)}" ${m.selfCause === o ? 'checked' : ''}>${esc(o)}</label>`).join('')}
+  <input type="text" placeholder="或者自己写：具体哪一步出了问题" data-own="1" value="${opts.includes(m.selfCause) ? '' : esc(m.selfCause || '')}"><div class="row" style="margin-top:6px"><button class="btn sm pri" data-act="selfSave" data-id="${m.id}">保存</button></div></div>`;
+}
+ACT.selfEdit = el => { S.editSelf = S.editSelf || {}; S.editSelf[el.dataset.id] = true; render(); };
+ACT.selfSave = async el => {
+  const m = mById(el.dataset.id), box = $(`[data-self="${m.id}"]`);
+  const own = $('[data-own]', box).value.trim(); const r = $('input[type=radio]:checked', box);
+  const v = own || (r && r.value) || '';
+  if (!v) return toast('选一个，或者自己写');
+  if (vagueCause(v)) return alertBox('再具体一点', '“粗心”不算原因哦。想一想：是哪一步、哪个字、哪个符号出了问题？比如“把除号看成了乘号”。');
+  m.selfCause = v; if (S.editSelf) delete S.editSelf[m.id]; await save('mistakes', m); toast('记下了'); render();
+};
+function libFilter() {
+  const f = S.libF || {};
+  return kidMs().filter(m => (!f.subject || m.subject === f.subject) && (!f.kp || m.kp === f.kp) && (!f.cause || m.cause === f.cause) && (!f.status || statusOf(m) === f.status) && (!f.exam || m.examId === f.exam))
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+PAGES.lib = () => {
+  const ms = kidMs(), f = S.libF || {}; const list = libFilter();
+  const opt = (name, vals, label) => `<select data-lf="${name}" aria-label="${label}"><option value="">${label}：全部</option>${vals.map(v => `<option value="${esc(v[0])}" ${f[name] === v[0] ? 'selected' : ''}>${esc(v[1])}</option>`).join('')}</select>`;
+  const uniq = a => [...new Set(a)].filter(Boolean);
+  return `<div class="row between"><h1>错题库</h1><div class="row"><button class="btn sm" data-act="manualAdd">＋ 手动录题</button><button class="btn sm" data-act="printSel" ${S.libSel.size ? '' : 'disabled'}>打印选中（${S.libSel.size}）</button></div></div>
+  <div class="filters">${opt('subject', uniq(ms.map(m => m.subject)).map(v => [v, v]), '科目')}${opt('kp', uniq(ms.map(m => m.kp)).map(v => [v, v]), '知识点')}${opt('cause', CAUSES.map(v => [v, v]), '错因')}${opt('status', ['未做过', '复习中', '总错', '已掌握', '已归档'].map(v => [v, v]), '状态')}${opt('exam', S.exams.filter(e => e.kidId === S.kidId).map(e => [e.id, e.name]), '考试')}</div>
+  <p class="muted small">共 ${list.length} 道 ${list.length ? `<button class="btn ghost sm" data-act="selAll">全选这些</button>` : ''}</p>
+  ${list.map(mCard).join('') || '<div class="card muted">还没有错题。去“录入”拍卷子，或手动录题。</div>'}`;
+};
+AFTER.lib = () => {
+  $$('[data-lf]').forEach(s => s.onchange = () => { S.libF = Object.assign({}, S.libF, { [s.dataset.lf]: s.value }); render(); });
+  $$('[data-self]').forEach(box => { box.addEventListener('change', e => { if (e.target.type === 'radio') $('[data-own]', box).value = ''; }); box.addEventListener('input', e => { if (e.target.dataset.own && e.target.value) $$('input[type=radio]', box).forEach(r => r.checked = false); }); });
+};
+ACT.libSel = el => { if (el.checked) S.libSel.add(el.dataset.id); else S.libSel.delete(el.dataset.id); const b = $('[data-act="printSel"]'); if (b) { b.textContent = `打印选中（${S.libSel.size}）`; b.disabled = !S.libSel.size; } };
+ACT.selAll = () => { libFilter().forEach(m => S.libSel.add(m.id)); render(); };
+ACT.printSel = () => go('print', { mode: 'sel' });
+ACT.unarch = async el => { const m = mById(el.dataset.id); m.archived = false; m.due = addDays(today(), 1); await save('mistakes', m); toast('已收录，明天开始排进计划'); render(); };
+ACT.restore = async el => { const m = mById(el.dataset.id); restoreM(m); await save('mistakes', m); toast('已恢复，今天就会出现在计划里'); render(); };
+ACT.addExp = async el => { const m = mById(el.dataset.id); addExplain(m); await save('mistakes', m); toast(m.mastered ? '讲通了！这道题已掌握' : '已记录：讲通 ✓'); render(); };
+ACT.delM = async el => { if (!await confirmBox('删除错题', '确定删除这道错题和它的做题记录吗？', '删除', 'bad')) return; await remove('mistakes', el.dataset.id); S.pits.forEach(p => p.mistakeIds = p.mistakeIds.filter(x => x !== el.dataset.id)); render(); };
+ACT.editM = async el => {
+  const m = mById(el.dataset.id); const it = Object.assign(blankItem(), clone(m), { keep: !m.archived });
+  const r = await modal({ title: '编辑错题', body: `<div id="rvList">${itemForm(it, 0)}</div>`, buttons: [{ text: '取消', value: null }, { text: '保存', cls: 'pri', value: mm => { const o = {}; $$('[data-f]', mm).forEach(inp => { const f = inp.dataset.f; o[f] = f === 'keep' ? inp.checked : f === 'causeOptions' ? inp.value.split('\n').map(s => s.trim()).filter(Boolean) : inp.value.trim(); }); return o; } }], onOpen: mm => { const d = $('[data-act="rvDel"]', mm); if (d) d.remove(); } });
+  if (!r) return;
+  if (r.pitfall && vagueCause(r.pitfall)) return alertBox('易错点写得太笼统', '请写具体哪一步出了问题。');
+  const wasArch = m.archived; Object.assign(m, r); m.archived = !r.keep; delete m.keep;
+  if (wasArch && !m.archived && !m.due && !m.mastered) m.due = addDays(today(), 1);
+  if (m.archived) m.due = null;
+  await save('mistakes', m); toast('已保存'); render();
+};
+ACT.showImg = async el => { const ex = examById(el.dataset.id); const imgs = []; for (const id of ex.imageIds) { const r = await DB.get('images', id); if (r) imgs.push(r.data); } modal({ title: esc(ex.name) + ' 原图', body: imgs.map(u => `<img src="${u}" style="width:100%;border-radius:8px;margin-bottom:8px" alt="原卷">`).join('') || '没有原图' }); };
+
+/* ========== 坑 ========== */
+function kidSubjectsWithMs() { const k = kid(); const ss = [...new Set(kidMs().map(m => m.subject))]; return k.subjects.filter(s => ss.includes(s)).concat(ss.filter(s => !k.subjects.includes(s))); }
+PAGES.pits = () => {
+  const subs = kidSubjectsWithMs(); if (!subs.length) return '<h1>坑与闯关</h1><div class="card muted">还没有错题。录入错题后，可以把它们归纳成“坑”（易错点技能卡），再做变式闯关。</div>';
+  const sub = subs.includes(S.params.subject) ? S.params.subject : (subs.includes(S.pitSub) ? S.pitSub : subs[0]); S.pitSub = sub;
+  const ms = kidMs().filter(m => m.subject === sub); const pits = S.pits.filter(p => p.kidId === S.kidId && p.subject === sub);
+  const un = ms.filter(m => !m.archived && (!m.pitId || !pitById(m.pitId))).length;
+  return `<h1>坑与闯关</h1><div class="seg">${subs.map(s => `<button data-act="go" data-r="pits" data-subject="${s}" class="${s === sub ? 'on' : ''}">${s}</button>`).join('')}</div>
+  <div class="card"><p class="muted" style="margin-top:0">把 ${esc(kid().name)} 所有考试里的${esc(sub)}错题（收录 ${ms.filter(m => !m.archived).length} 道）合并成“坑”，跨考试累积。${un ? `有 <b>${un}</b> 道还没归入坑。` : ''}</p>
+  <div class="row"><button class="btn pri" data-act="pitAI" data-s="${sub}">${pits.length ? 'AI 重新归纳' : 'AI 归纳坑'}</button><button class="btn" data-act="pitLocal" data-s="${sub}">按知识点分组（不用 AI）</button><button class="btn" data-act="go" data-r="print" data-mode="cheat">考前速览</button></div></div>
+  ${pits.sort((a, b) => b.mistakeIds.length - a.mistakeIds.length).map(p => { const pm = p.mistakeIds.map(mById).filter(Boolean); return `<article class="card"><div class="row between"><h2 style="margin:0">${esc(p.name)}</h2><div class="row">${p.passed ? '<span class="tag t-done">已通关</span>' : '<span class="tag">未通关</span>'}<span class="stars">${'★'.repeat(p.stars)}${'☆'.repeat(3 - p.stars)}</span></div></div>
+    <p style="margin:8px 0"><b>规则：</b>${esc(p.rule)}</p><p class="muted small">涉及 ${pm.length} 道题 · 总错 ${pm.filter(m => m.hard && !m.mastered).length} 道 · 已掌握 ${pm.filter(m => m.mastered).length} 道${p.bestStreak ? ` · 最佳连对 ${p.bestStreak}` : ''}</p>
+    <details><summary>展开看原题</summary>${pm.map(m => `<div class="todo"><div class="main"><div>${esc(m.stem.split('\n')[0])}</div><div class="small"><span class="wrong">${esc(m.wrong)}</span> → <span class="right">${esc(m.right)}</span> ${statusTag(m)}</div></div></div>`).join('')}</details>
+    <div class="row" style="margin-top:8px"><button class="btn pri" data-act="go" data-r="quiz" data-pit="${p.id}">开始闯关</button><button class="btn" data-act="go" data-r="print" data-mode="pit" data-pit="${p.id}">打印这个坑</button></div></article>`; }).join('')}`;
+};
+async function applyPits(sub, groups) {
+  const kidId = S.kidId; const old = S.pits.filter(p => p.kidId === kidId && p.subject === sub);
+  const keep = [];
+  for (const g of groups) {
+    if (!g.ids.length) continue;
+    const prev = old.find(p => p.name === g.name);
+    const p = prev ? Object.assign(prev, { rule: g.rule, stars: g.stars, mistakeIds: g.ids }) : { id: uid(), kidId, subject: sub, name: g.name, rule: g.rule, stars: g.stars, mistakeIds: g.ids, passed: false, bestStreak: 0, createdAt: Date.now() };
+    keep.push(p); await save('pits', p);
+  }
+  for (const p of old) if (!keep.includes(p)) { await remove('pits', p.id); for (const q of S.quizzes.filter(q => q.pitId === p.id)) await remove('quizzes', q.id); }
+  for (const p of keep) for (const id of p.mistakeIds) { const m = mById(id); if (m) { m.pitId = p.id; await save('mistakes', m); } }
+  toast(`归纳出 ${keep.length} 个坑`); render();
+}
+ACT.pitAI = async el => {
+  const sub = el.dataset.s, k = kid(); const ms = kidMs().filter(m => m.subject === sub && !m.archived);
+  if (!hasKey()) { if (await confirmBox('需要 API Key', 'AI 归纳需要 API Key。也可以先用“按知识点分组（不用 AI）”。', '去设置')) go('settings'); return; }
+  const t = taskPits(k, sub, ms, S.pits.filter(p => p.kidId === k.id && p.subject === sub));
+  const r = await runAI('AI 正在把错题归纳成坑…', t, j => vPits(j, t._map)); if (!r) return;
+  const assigned = new Set(r.flatMap(g => g.ids)); const rest = ms.filter(m => !assigned.has(m.id));
+  rest.forEach(m => { const g = r.find(g => g.ids.some(id => mById(id).kp === m.kp)); if (g) g.ids.push(m.id); else r.push({ name: m.kp, rule: m.pitfall, stars: 2, ids: [m.id] }); });
+  await applyPits(sub, r);
+};
+ACT.pitLocal = async el => {
+  const sub = el.dataset.s; const ms = kidMs().filter(m => m.subject === sub && !m.archived); const g = {};
+  ms.forEach(m => { (g[m.kp] = g[m.kp] || []).push(m); });
+  await applyPits(sub, Object.entries(g).map(([kp, arr]) => ({ name: kp, rule: arr[0].pitfall || '再做一遍原题，说出关键步骤', stars: Math.min(3, arr.length), ids: arr.map(m => m.id) })));
+};
+
+/* ========== 闯关 ========== */
+PAGES.quiz = () => {
+  const p = pitById(S.params.pit); if (!p) return '<p>找不到这个坑。</p><button class="btn" data-act="go" data-r="pits">返回</button>';
+  let P = S.play; if (!P || P.pitId !== p.id) P = S.play = { pitId: p.id, level: 1, mode: null, qs: [], i: 0, streak: 0, answered: 0, correct: 0, pick: null };
+  if (!P.mode) {
+    const cached = S.quizzes.filter(q => q.pitId === p.id);
+    return `<div class="row between"><h1>闯关：${esc(p.name)}</h1><button class="btn ghost sm" data-act="go" data-r="pits">返回</button></div>
+    <section class="card"><p><b>规则：</b>${esc(p.rule)}</p><p class="muted">连续答对 3 题就通关；答错会清零，并展开错因提醒。</p>
+    <label class="f">难度</label><div class="seg">${[1, 2, 3].map(l => `<button data-act="qLevel" data-l="${l}" class="${P.level === l ? 'on' : ''}">${['基础', '提高', '挑战'][l - 1]}</button>`).join('')}</div>
+    <div class="row"><button class="btn pri big" data-act="qStart" ${!hasKey() && !cached.some(q => q.level === P.level) ? 'disabled' : ''}>${cached.some(q => q.level === P.level) ? `开始（已有 ${cached.filter(q => q.level === P.level).reduce((a, q) => a + q.questions.length, 0)} 道题）` : 'AI 出一组变式题'}</button>
+    <button class="btn big" data-act="qSelf">重做原题（自评）</button></div>
+    ${hasKey() ? '' : '<p class="muted small">没有 API Key 时，可以用“重做原题”自评模式闯关。</p>'}</section>`;
+  }
+  if (P.i >= P.qs.length) return `<section class="card" style="text-align:center"><h2>这一组做完了</h2><p>连对 ${P.streak} 题，还差 ${3 - P.streak} 题通关。</p><div class="row" style="justify-content:center">${P.mode === 'ai' ? '<button class="btn pri" data-act="qMore">再来一组</button>' : ''}<button class="btn" data-act="qRestart">打乱再练</button></div></section>`;
+  const q = P.qs[P.i];
+  const streak = `<div class="streak" aria-label="连对 ${P.streak}">${[0, 1, 2].map(i => `<i class="${i < P.streak ? 'on' : ''}"></i>`).join('')}</div>`;
+  if (P.mode === 'self') {
+    const m = q;
+    return `<div class="row between"><span class="muted">原题自评 · 第 ${P.i + 1}/${P.qs.length} 题</span><button class="btn ghost sm" data-act="qExit">退出</button></div>${streak}
+    <section class="card mcard"><div class="stem" style="font-size:18px">${esc(m.stem)}</div>
+    ${P.pick === 'show' ? `<div class="ans"><b>正确答案</b><span class="right">${esc(m.right)}</span></div><p class="small" style="white-space:pre-wrap">${esc(m.explain)}</p><div class="row"><button class="btn ok big" data-act="qSelfMark" data-ok="1">做对了</button><button class="btn bad big" data-act="qSelfMark" data-ok="0">做错了</button></div>` : '<button class="btn pri big block" data-act="qSelfShow">做完了，看答案</button>'}
+    ${P.remind ? P.remind : ''}</section>`;
+  }
+  const answered = P.pick !== null;
+  return `<div class="row between"><span class="muted">${['基础', '提高', '挑战'][P.level - 1]} · 第 ${P.i + 1}/${P.qs.length} 题 · 已答 ${P.answered} 对 ${P.correct}</span><button class="btn ghost sm" data-act="qExit">退出</button></div>${streak}
+  <section class="card"><div style="font-size:18px;white-space:pre-wrap">${esc(q.q)}</div>
+  ${q.options.map((o, i) => `<button class="opt ${answered ? (i === q.answer ? 'sel-ok' : i === P.pick ? 'sel-bad' : '') : ''}" data-act="qPick" data-i="${i}" ${answered ? 'disabled' : ''}>${'ABCD'[i]}. ${esc(o)}</button>`).join('')}
+  ${answered && P.pick !== q.answer ? `<div class="remind" id="remind"><b>错因提醒</b><br><b>规则：</b>${esc(q.rule || pitById(P.pitId).rule)}<br><b>正解：</b>${'ABCD'[q.answer]}. ${esc(q.options[q.answer])}<br><b>关键步骤：</b>${esc(q.steps)}<br><span class="small">${esc(q.explain)}</span></div>` : ''}
+  ${answered && P.pick === q.answer ? `<div class="banner okb" style="margin-top:10px">答对了！${esc(q.explain)}</div>` : ''}
+  ${answered ? '<button class="btn pri big block" data-act="qNext" style="margin-top:10px">下一题</button>' : ''}</section>`;
+};
+ACT.qLevel = el => { S.play.level = +el.dataset.l; render(); };
+async function loadQuiz(fresh) {
+  const P = S.play, p = pitById(P.pitId), k = kid();
+  let sets = S.quizzes.filter(q => q.pitId === p.id && q.level === P.level);
+  if (fresh || !sets.length) {
+    const ms = p.mistakeIds.map(mById).filter(Boolean);
+    const qs = await runAI('AI 正在出变式题…', taskQuiz(k, p, ms, P.level), vQuiz); if (!qs) return false;
+    const rec = { id: uid(), pitId: p.id, level: P.level, questions: qs, createdAt: Date.now(), demo: p.demo }; await save('quizzes', rec); sets = [rec];
+  }
+  const set = fresh ? sets[sets.length - 1] : sets[Math.floor(Math.random() * sets.length)];
+  P.qs = set.questions; P.i = 0; P.pick = null; P.mode = 'ai'; return true;
+}
+ACT.qStart = async () => { if (await loadQuiz(false)) render(); };
+ACT.qMore = async () => { if (await loadQuiz(true)) render(); };
+ACT.qRestart = () => { const P = S.play; P.qs = [...P.qs].sort(() => Math.random() - .5); P.i = 0; P.pick = null; render(); };
+ACT.qExit = () => { S.play = null; go('pits'); };
+ACT.qSelf = () => { const P = S.play, p = pitById(P.pitId); P.qs = p.mistakeIds.map(mById).filter(Boolean).sort(() => Math.random() - .5); if (!P.qs.length) return toast('这个坑没有原题'); P.mode = 'self'; P.i = 0; P.pick = null; render(); };
+ACT.qSelfShow = () => { S.play.pick = 'show'; render(); };
+ACT.qSelfMark = async el => { const ok = el.dataset.ok === '1'; const P = S.play, m = P.qs[P.i]; P.remind = ok ? '' : `<div class="remind"><b>错因提醒：</b>${esc(m.pitfall)}<br><b>规则：</b>${esc(pitById(P.pitId).rule)}</div>`; await answerQ(ok); };
+ACT.qPick = async el => { const P = S.play; P.pick = +el.dataset.i; const ok = P.pick === P.qs[P.i].answer; await answerQ(ok, true); };
+ACT.qNext = () => { const P = S.play; P.i++; P.pick = null; render(); };
+async function answerQ(ok, stay) {
+  const P = S.play, p = pitById(P.pitId);
+  P.answered++; if (ok) { P.correct++; P.streak++; } else P.streak = 0;
+  if (P.streak > (p.bestStreak || 0)) { p.bestStreak = P.streak; await save('pits', p); }
+  if (P.streak >= 3) {
+    p.passed = true; p.passedAt = today(); await save('pits', p);
+    render();
+    const v = await modal({ title: '通关啦！', body: `<p style="font-size:18px;text-align:center">“${esc(p.name)}”这个坑跨过去了！</p><p style="text-align:center">共答 ${P.answered} 题，正确率 <b>${Math.round(P.correct / P.answered * 100)}%</b></p>`, buttons: [{ text: '回到坑列表', value: 'back' }, { text: '再练一组', value: 'again' }, ...(P.mode === 'ai' && P.level < 3 ? [{ text: '升难度', cls: 'pri', value: 'up' }] : [])] });
+    const lvl = P.level, mode = P.mode;
+    S.play = { pitId: p.id, level: v === 'up' ? lvl + 1 : lvl, mode: null, qs: [], i: 0, streak: 0, answered: 0, correct: 0, pick: null };
+    if (v === 'back' || !v) return go('pits');
+    if (mode === 'self') { ACT.qSelf(); return; }
+    if (await loadQuiz(v === 'up' ? !S.quizzes.some(q => q.pitId === p.id && q.level === lvl + 1) : false)) render(); else render();
+    return;
+  }
+  if (!stay) { P.i++; P.pick = null; }
+  render();
+}
+
+/* ========== 看板 ========== */
+function bars(rows, color) { const max = Math.max(1, ...rows.map(r => r[1])); return `<div class="bars">${rows.map(r => `<div class="b"><span class="lb" title="${esc(r[0])}">${esc(r[0])}</span><div class="track"><div class="fill" style="width:${r[1] / max * 100}%;${color ? 'background:' + color : ''}"></div></div><span>${r[1]}</span></div>`).join('')}</div>`; }
+function weekKey() { return weekStart(today()); }
+PAGES.board = () => {
+  const k = kid(), ms = kidMs().filter(m => !m.archived);
+  if (!ms.length) return '<h1>看板</h1><div class="card muted">还没有错题数据。</div>';
+  const cnt = (arr, f) => { const o = {}; arr.forEach(x => { const v = f(x); o[v] = (o[v] || 0) + 1; }); return Object.entries(o).sort((a, b) => b[1] - a[1]); };
+  const bySub = cnt(ms, m => m.subject), byKp = cnt(ms, m => m.kp).slice(0, 10), byCause = CAUSES.map(c => [c, ms.filter(m => m.cause === c).length]);
+  const st = ['未做过', '复习中', '总错', '已掌握'].map(s => [s, ms.filter(m => statusOf(m) === s).length]);
+  const col = { '未做过': '#9aa3b5', '复习中': '#2f6fed', '总错': '#e5484d', '已掌握': '#12a150' };
+  const exams = S.exams.filter(e => e.kidId === k.id).sort((a, b) => a.date < b.date ? -1 : 1).slice(-10);
+  const exRows = exams.map(e => { const em = S.mistakes.filter(m => m.examId === e.id); return { e, n: em.length, lost: em.reduce((a, m) => a + (parseFloat(m.score) || 0), 0) }; });
+  const maxN = Math.max(1, ...exRows.map(r => r.n));
+  const ws = weekStats(k.id), lastWs = weekStats(k.id, addDays(weekKey(), -7));
+  const diag = S.kv['diag:' + k.id];
+  const acts = S.actions.filter(a => a.kidId === k.id && a.week === weekKey());
+  const hard = hardList(k.id);
+  const causeCol = ['#6b7cff', '#f08c00', '#14a3a3'];
+  const tot = ms.length;
+  return `<h1>${esc(k.name)}的看板</h1>
+  <div class="stats"><div class="stat"><div class="v">${ws.rate === null ? '—' : ws.rate + '%'}</div><div class="k">本周完成率（上周 ${lastWs.rate === null ? '—' : lastWs.rate + '%'}）</div></div>
+  <div class="stat"><div class="v">${ws.onTimeRate === null ? '—' : ws.onTimeRate + '%'}</div><div class="k">按时完成率</div></div>
+  <div class="stat"><div class="v">${ws.newMastered}</div><div class="k">本周新掌握</div></div>
+  <div class="stat"><div class="v">${ws.attempts}</div><div class="k">本周做题次数</div></div></div>
+  <section class="card hl"><div class="row between"><h2 style="margin:0">AI 一句话诊断</h2><button class="btn sm" data-act="diag">${diag ? '重新诊断' : '生成诊断'}</button></div><p id="diagText" style="margin-bottom:0">${diag ? esc(diag.text) + ` <span class="muted small">（${md(diag.date)}）</span>` : '<span class="muted">点按钮，让 AI 根据全部错题给一句话建议。</span>'}</p></section>
+  <div class="grid2">
+  <section class="card"><h2>掌握进度</h2><div class="stack">${st.map(s => s[1] ? `<div style="width:${s[1] / tot * 100}%;background:${col[s[0]]}" title="${s[0]} ${s[1]}"></div>` : '').join('')}</div>
+    <div class="row small" style="margin-top:8px">${st.map(s => `<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${col[s[0]]}"></i> ${s[0]} ${s[1]}</span>`).join('')}</div></section>
+  <section class="card"><h2>错因三类占比</h2><div class="stack">${byCause.map((c, i) => c[1] ? `<div style="width:${c[1] / tot * 100}%;background:${causeCol[i]}"></div>` : '').join('')}</div>
+    <div class="row small" style="margin-top:8px">${byCause.map((c, i) => `<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${causeCol[i]}"></i> ${c[0]} ${Math.round(c[1] / tot * 100)}%</span>`).join('')}</div></section>
+  <section class="card"><h2>各科错题数</h2>${bars(bySub)}</section>
+  <section class="card"><h2>知识点分布（前 10）</h2>${bars(byKp, '#7b61ff')}</section>
+  </div>
+  <section class="card"><h2>各次考试错题趋势</h2><div class="vbars">${exRows.map(r => `<div class="c"><span>${r.n}${r.lost ? `<span class="muted">/-${r.lost}</span>` : ''}</span><div class="bar" style="height:${r.n / maxN * 100}px"></div><span class="l" title="${esc(r.e.name)}">${esc(r.e.subject)}<br>${md(r.e.date)}</span></div>`).join('')}</div><p class="muted small">柱子 = 错题数，“/-x” = 扣分。</p></section>
+  ${hard.length ? `<section class="card"><h2>总错榜单</h2>${hard.slice(0, 10).map((m, i) => `<div class="todo"><b>${i + 1}</b><div class="main"><div class="t1">${esc(m.stem.split('\n')[0])}</div><div class="small"><span class="tag t-subj">${esc(m.subject)}</span> <span class="tag t-hard">错 ${wrongCount(m)} 次</span> 下次 ${md(m.due)}</div></div></div>`).join('')}</section>` : ''}
+  <section class="card"><div class="row between"><h2 style="margin:0">本周行动</h2><button class="btn sm" data-act="genActs">${acts.length ? '重新生成' : '生成本周行动'}</button></div>
+  ${acts.length ? acts.map(a => actRow(a)).join('') : '<p class="muted">每条行动绑定一个坑，每天打卡。先在“闯关”里归纳出坑。</p>'}</section>
+  <section class="card"><div class="row between"><h2 style="margin:0">考前速览</h2><button class="btn sm" data-act="go" data-r="print" data-mode="cheat">打印</button></div>${cheatHTML(k.id, false)}</section>`;
+};
+function streakDays(checks) { const s = new Set(checks); let d = today(); if (!s.has(d)) d = addDays(d, -1); let n = 0; while (s.has(d)) { n++; d = addDays(d, -1); } return n; }
+function actRow(a) {
+  const p = pitById(a.pitId); const done = a.checks.includes(today());
+  return `<div class="todo" data-aid="${a.id}"><label class="chk"><input type="checkbox" data-act="actCheck" data-id="${a.id}" ${done ? 'checked' : ''} aria-label="今天完成"></label><div class="main"><div>${esc(a.text)}</div>
+  <div class="small muted">${p ? '坑：' + esc(p.name) + ' · ' : ''}本周 ${a.count}/${a.target} 次 · 连续打卡 <b style="color:var(--warn)">${streakDays(a.checks)}</b> 天</div>
+  <div class="row" style="margin-top:4px"><button class="btn sm" data-act="actCnt" data-id="${a.id}" data-d="-1" aria-label="减一">−</button><button class="btn sm" data-act="actCnt" data-id="${a.id}" data-d="1" aria-label="加一">＋</button><input type="text" data-anote="${a.id}" value="${esc(a.note || '')}" placeholder="备注" style="flex:1;min-width:120px"></div></div></div>`;
+}
+AFTER.board = () => { $$('[data-anote]').forEach(i => i.onchange = async () => { const a = S.actions.find(x => x.id === i.dataset.anote); a.note = i.value; await save('actions', a); toast('备注已保存'); }); };
+ACT.actCheck = async el => { const a = S.actions.find(x => x.id === el.dataset.id); const T = today(); if (el.checked) { if (!a.checks.includes(T)) { a.checks.push(T); a.count++; } } else { a.checks = a.checks.filter(d => d !== T); a.count = Math.max(0, a.count - 1); } await save('actions', a); render(); };
+ACT.actCnt = async el => { const a = S.actions.find(x => x.id === el.dataset.id); a.count = Math.max(0, a.count + (+el.dataset.d)); await save('actions', a); render(); };
+ACT.genActs = async () => {
+  const k = kid(); const pits = S.pits.filter(p => p.kidId === k.id);
+  if (!pits.length) return alertBox('还没有坑', '先到“闯关”页把错题归纳成坑，再生成本周行动。');
+  let list;
+  if (hasKey()) {
+    const r = await runAI('AI 正在制定本周行动…', taskActions(k, pits), j => { if (!Array.isArray(j.actions) || !j.actions.length) throw new Error('x'); return j.actions; });
+    if (!r) return;
+    list = r.slice(0, 5).map(a => ({ pitId: (pits[parseInt(String(a.pit).replace(/\D/g, '')) - 1] || pits[0]).id, text: String(a.text || ''), target: Math.min(7, Math.max(1, parseInt(a.target) || 5)) }));
+  } else {
+    list = [...pits].sort((a, b) => (a.passed - b.passed) || b.mistakeIds.length - a.mistakeIds.length).slice(0, 3).map(p => ({ pitId: p.id, text: `每天做 1 组“${p.name}”闯关，并说出规则：${p.rule}`, target: 5 }));
+  }
+  for (const a of S.actions.filter(a => a.kidId === k.id && a.week === weekKey())) await remove('actions', a.id);
+  for (const a of list) await save('actions', Object.assign({ id: uid(), kidId: k.id, week: weekKey(), count: 0, note: '', checks: [] }, a));
+  toast('本周行动已生成'); render();
+};
+ACT.diag = async () => {
+  const k = kid(), ms = kidMs().filter(m => !m.archived);
+  if (!hasKey()) return alertBox('需要 API Key', 'AI 诊断需要先在设置里填 API Key。');
+  const ws = weekStats(k.id);
+  const sum = `错题 ${ms.length} 道；错因：${CAUSES.map(c => c + ms.filter(m => m.cause === c).length).join('，')}；知识点：${[...new Set(ms.map(m => m.kp))].slice(0, 12).join('、')}；总错 ${hardList(k.id).length} 道；本周完成率 ${ws.rate ?? '无'}%；坑：${S.pits.filter(p => p.kidId === k.id).map(p => p.name + (p.passed ? '(已通关)' : '')).join('、')}`;
+  const r = await runAI('AI 正在诊断…', taskDiag(k, sum), j => { if (!j.diagnosis) throw new Error('x'); return String(j.diagnosis); }); if (!r) return;
+  await kvSet('diag:' + k.id, { text: r, date: today() }); render();
+};
+function cheatHTML(kidId, forPrint) {
+  const pits = S.pits.filter(p => p.kidId === kidId); if (!pits.length) return '<p class="muted">还没有坑。</p>';
+  const subs = [...new Set(pits.map(p => p.subject))];
+  return subs.map(s => `<h3>${esc(s)}</h3><ol style="padding-left:20px;margin-top:0">${pits.filter(p => p.subject === s).map(p => `<li><b>${esc(p.name)}</b>：${esc(p.rule)}${forPrint ? '' : ` <span class="muted small">(${p.mistakeIds.length} 题)</span>`}</li>`).join('')}</ol>`).join('');
+}
+
+/* ========== 打印 ========== */
+function printItems(mode) {
+  const k = kid(), T = today();
+  if (mode === 'today') return todayPlan(k.id).map(x => ({ m: x.m, day: T }));
+  if (mode === 'week') { const end = addDays(weekStart(T), 6); const p = buildPlan(k.id, end); return Object.entries(p.days).flatMap(([d, l]) => l.map(x => ({ m: x.m, day: d }))); }
+  if (mode === 'sel') return [...S.libSel].map(mById).filter(Boolean).map(m => ({ m }));
+  if (mode === 'pit') { const p = pitById(S.params.pit); return p ? p.mistakeIds.map(mById).filter(Boolean).map(m => ({ m })) : []; }
+  if (mode === 'subject') return kidMs().filter(m => m.subject === S.params.subject && !m.archived).map(m => ({ m }));
+  return [];
+}
+PAGES.print = () => {
+  const k = kid(); const mode = S.params.mode || 'today'; const o = S.printOpt = S.printOpt || { wrong: false, ans: true, blank: true };
+  const titles = { today: '今日练习卷', week: '本周练习卷', sel: '错题卷（选中）', pit: '坑专项卷', subject: '科目错题卷', cheat: '考前速览' };
+  const nav = `<div class="seg">${['today', 'week', 'sel', 'subject', 'cheat'].map(x => `<button data-act="go" data-r="print" data-mode="${x}" data-subject="${esc(S.params.subject || k.subjects[0])}" class="${mode === x ? 'on' : ''}">${titles[x]}</button>`).join('')}</div>`;
+  if (mode === 'cheat') return `<h1>考前速览</h1>${nav}<div class="row" style="margin-bottom:10px"><button class="btn pri" data-act="doPrint">打印</button></div><div class="pv" id="pv"><h1>${esc(k.name)} · 考前速览</h1><p class="meta">所有坑的一句话教训 · ${today()}</p>${cheatHTML(k.id, true)}</div>`;
+  const items = printItems(mode);
+  let body = '', ans = '';
+  items.forEach((x, i) => {
+    const m = x.m;
+    body += `<div class="q"><div class="meta">${i + 1}. ${esc(m.subject)}${x.day ? ' · ' + md(x.day) + wdName(x.day) : ''} · ${esc(m.kp)}</div><div class="st">${esc(m.stem)}</div>${o.wrong ? `<div class="meta">当时错答：${esc(m.wrong)}</div>` : ''}${o.blank ? '<div class="blank"></div>' : ''}</div>`;
+    ans += `<div class="q"><b>${i + 1}.</b> 答案：${esc(m.right)}<br><span class="meta">易错点：${esc(m.pitfall)}</span><div class="st small">${esc(m.explain)}</div></div>`;
+  });
+  return `<h1>${titles[mode]}</h1>${nav}
+  ${mode === 'subject' ? `<select id="prSub" style="max-width:240px;margin-bottom:8px">${k.subjects.map(s => `<option ${s === S.params.subject ? 'selected' : ''}>${s}</option>`).join('')}</select>` : ''}
+  <div class="card"><label class="chk"><input type="checkbox" data-po="wrong" ${o.wrong ? 'checked' : ''}>附上当时的错答</label><label class="chk"><input type="checkbox" data-po="ans" ${o.ans ? 'checked' : ''}>答案和解析附在后面（另起一页）</label><label class="chk"><input type="checkbox" data-po="blank" ${o.blank ? 'checked' : ''}>每题留作答空白</label>
+  <div class="row"><button class="btn pri big" data-act="doPrint" ${items.length ? '' : 'disabled'}>打印（${items.length} 题）</button>${['today', 'week'].includes(mode) && items.length ? '<span class="muted small">做完后到“批改登记”逐题点对/错。</span>' : ''}</div></div>
+  <div class="pv" id="pv"><h1>${esc(k.name)} · ${titles[mode]}</h1><p class="meta">${k.stage}${k.grade} · 打印日期 ${today()} · 共 ${items.length} 题　姓名：________　用时：______</p>
+  ${body || '<p>没有题目。</p>'}${o.ans && items.length ? `<div class="ansSec"><h2>答案与解析</h2>${ans}</div>` : ''}</div>`;
+};
+AFTER.print = () => {
+  $$('[data-po]').forEach(c => c.onchange = () => { S.printOpt[c.dataset.po] = c.checked; render(); });
+  const ps = $('#prSub'); if (ps) ps.onchange = () => go('print', { mode: 'subject', subject: ps.value });
+};
+ACT.doPrint = async () => {
+  const mode = S.params.mode || 'today';
+  if (mode === 'today' || mode === 'week') { const items = printItems(mode); await kvSet('sheet:' + S.kidId, { date: today(), mode, items: items.map(x => ({ id: x.m.id, day: x.day })) }); }
+  $('#printArea').innerHTML = $('#pv').outerHTML; window.print();
+};
+
+/* ========== 设置 ========== */
+PAGES.settings = () => {
+  const st = getSet();
+  return `<h1>设置</h1>
+  <section class="card"><h2>孩子档案</h2>${S.kids.map(k => `<div class="todo"><div class="main"><b>${esc(k.name)}</b>${k.demo ? ' <span class="tag">示例</span>' : ''}<div class="muted small">${k.stage} · ${k.grade} · ${k.subjects.join('、')} · 每天 ${k.cap || 5} 道</div></div><button class="btn sm" data-act="editKid" data-id="${k.id}">编辑</button><button class="btn sm ghost" data-act="delKid" data-id="${k.id}">删除</button></div>`).join('') || '<p class="muted">还没有孩子档案。</p>'}
+  <button class="btn pri" data-act="addKid">＋ 添加孩子</button></section>
+  <section class="card"><h2>AI（DeepSeek）</h2>
+  <label class="f">API Key</label><div class="row" style="flex-wrap:nowrap"><input type="password" id="sKey" value="${esc(st.apiKey)}" placeholder="sk-..." autocomplete="off"><button class="btn sm" data-act="toggleKey">显示</button></div>
+  <p class="muted small">只保存在本机浏览器（localStorage），不会上传到别处；调用 AI 时直接发给下面的地址。在 platform.deepseek.com 申请。</p>
+  <div class="grid2"><div><label class="f">Base URL</label><input type="url" id="sBase" value="${esc(st.baseUrl)}"></div><div><label class="f">模型名</label><input type="text" id="sModel" value="${esc(st.model)}"></div></div>
+  <label class="f">思考模式</label><select id="sThink"><option value="auto" ${st.thinking === 'auto' ? 'selected' : ''}>自动（识别、归纳时开启，其余关闭）</option><option value="on" ${st.thinking === 'on' ? 'selected' : ''}>总是开启（更准、更慢）</option><option value="off" ${st.thinking === 'off' ? 'selected' : ''}>总是关闭（最快）</option><option value="omit" ${st.thinking === 'omit' ? 'selected' : ''}>不发送此参数（用其他服务商时）</option></select>
+  <div class="row" style="margin-top:10px"><button class="btn pri" data-act="saveAI">保存</button><button class="btn" data-act="testAI">测试连接</button></div><p id="testRes" class="small"></p></section>
+  <section class="card"><h2>复习规则</h2>
+  <label class="f">家长称呼（“讲给___听”）</label><input type="text" id="sParent" value="${esc(st.parentTitle)}" placeholder="妈妈">
+  <label class="f">连续做对几次算掌握</label><input type="number" id="sMasterN" min="2" max="6" value="${st.masterN}">
+  <label class="chk"><input type="checkbox" id="sReqExp" ${st.requireExplain ? 'checked' : ''}>掌握还需要至少 1 次“讲通了”（没讲通时会多复习 2 次再判掌握，不会卡死）</label>
+  <p class="muted small">间隔：订正后第 1 天重做，做对后间隔 1→2→4→7→15→30 天拉长；做错重置为 1 天并标“总错”，提高频率。</p>
+  <button class="btn pri" data-act="saveRule">保存</button></section>
+  <section class="card"><h2>提醒</h2>
+  <label class="f">每天提醒时间</label><input type="time" id="sTime" value="${esc(st.remindTime)}" style="max-width:180px">
+  <div class="row" style="margin-top:10px"><button class="btn" data-act="saveTime">保存时间</button><button class="btn" data-act="enableNotify">${st.notify ? '浏览器通知：已开启' : '开启浏览器通知'}</button><button class="btn pri" data-act="exportIcs">导出日历提醒（.ics）</button></div>
+  <p class="muted small">浏览器通知只在应用页面开着时到点提醒；网页关掉后无法推送。所以建议导出日历提醒：每个孩子每天固定时间一条，加每周日 20:00“看下周计划”，导入手机日历后到点就会响。</p></section>
+  <section class="card"><h2>数据</h2><p class="muted small">所有数据保存在本机浏览器（IndexedDB）。换手机或清理浏览器前请先导出备份。</p>
+  <label class="chk"><input type="checkbox" id="expImg">备份时包含原卷照片（文件会大很多）</label>
+  <div class="row"><button class="btn" data-act="exportData">导出备份</button><label class="btn">导入备份<input type="file" accept=".json,application/json" id="impIn" class="hidden"></label></div>
+  <div class="row" style="margin-top:8px"><button class="btn" data-act="loadDemo">载入示例数据</button><button class="btn" data-act="clearDemo">清除示例数据</button><button class="btn bad" data-act="clearAll">清空全部数据</button></div></section>
+  <p class="muted small" style="text-align:center">AI 错题本 · 单文件离线可用，只有 AI 调用需要联网</p>`;
+};
+AFTER.settings = () => { const i = $('#impIn'); i.onchange = () => importData(i); };
+ACT.toggleKey = el => { const i = $('#sKey'); i.type = i.type === 'password' ? 'text' : 'password'; el.textContent = i.type === 'password' ? '显示' : '隐藏'; };
+function readAI() { setSet({ apiKey: $('#sKey').value.trim(), baseUrl: $('#sBase').value.trim() || SET_DEF.baseUrl, model: $('#sModel').value.trim() || SET_DEF.model, thinking: $('#sThink').value }); }
+ACT.saveAI = () => { readAI(); toast('已保存（只在本机）'); };
+ACT.testAI = async () => {
+  readAI(); const out = $('#testRes'); out.textContent = '正在测试…'; out.style.color = '';
+  try { const r = await aiCall({ system: '【任务:测试连接】' + JSON_RULE, user: '请回复 {"ok":true}', maxTokens: 50 }); const j = parseJSONLoose(r.text); out.textContent = j && j.ok ? '连接成功，可以使用 AI 了。' : '连上了，但返回内容不太对：' + r.text.slice(0, 60); out.style.color = 'var(--ok)'; }
+  catch (e) { out.textContent = e.message; out.style.color = 'var(--bad)'; }
+};
+ACT.saveRule = () => { setSet({ parentTitle: $('#sParent').value.trim() || '妈妈', masterN: Math.min(6, Math.max(2, parseInt($('#sMasterN').value) || 3)), requireExplain: $('#sReqExp').checked }); toast('已保存'); };
+ACT.saveTime = () => { setSet({ remindTime: $('#sTime').value || '19:30' }); toast('提醒时间已保存'); };
+ACT.enableNotify = async () => {
+  if (!('Notification' in window)) return alertBox('不支持', '这个浏览器不支持网页通知，请用“导出日历提醒”。');
+  const p = await Notification.requestPermission();
+  if (p === 'granted') { setSet({ notify: true }); toast('已开启：应用开着时到点会提醒'); startNotify(); } else { setSet({ notify: false }); alertBox('没有获得通知权限', '可以在浏览器设置里允许通知，或用“导出日历提醒”。'); }
+  render();
+};
+ACT.exportData = async () => {
+  const data = { app: 'ai-ctb', version: 1, exportedAt: new Date().toISOString() };
+  for (const s of ['kids', 'exams', 'mistakes', 'pits', 'quizzes', 'actions']) data[s] = S[s];
+  data.kv = Object.entries(S.kv).map(([id, v]) => ({ id, v }));
+  data.images = $('#expImg') && $('#expImg').checked ? await DB.all('images') : [];
+  download(`AI错题本备份-${today()}.json`, JSON.stringify(data));
+  toast('备份已导出');
+};
+async function importData(inp) {
+  const f = inp.files[0]; if (!f) return; inp.value = '';
+  let d; try { d = JSON.parse(await f.text()); } catch (e) { return alertBox('导入失败', '这个文件不是有效的 JSON。'); }
+  if (!d || d.app !== 'ai-ctb') return alertBox('导入失败', '这不是 AI 错题本的备份文件。');
+  if (!await confirmBox('导入备份', `将导入 ${(d.kids || []).length} 个孩子、${(d.mistakes || []).length} 道错题。同一条记录会被备份里的覆盖，其他数据保留。`, '导入')) return;
+  for (const s of ['kids', 'exams', 'mistakes', 'pits', 'quizzes', 'actions', 'images', 'kv']) if (Array.isArray(d[s]) && d[s].length) await DB.putMany(s, d[s]);
+  await loadAll(); toast('导入完成'); render();
+}
+ACT.clearAll = async () => {
+  if (!await confirmBox('清空全部数据', '将删除所有孩子档案、错题、坑、做题记录和原图。建议先导出备份。', '继续', 'bad')) return;
+  const ok = await modal({ title: '再确认一次', body: '<p>请输入“清空”两个字确认：</p><input type="text" id="cfTxt">', buttons: [{ text: '取消', value: false }, { text: '永久清空', cls: 'bad', value: m => $('#cfTxt', m).value.trim() === '清空' }] });
+  if (!ok) return toast('已取消');
+  for (const s of STORES) await DB.clear(s); await loadAll(); S.draft = null; S.play = null; S.redo = null; toast('已清空'); go('home');
+};
+ACT.loadDemo = async () => { if (S.kids.some(k => k.demo)) return toast('示例数据已载入'); await loadDemo(); toast('示例数据已载入'); go('home'); };
+ACT.clearDemo = async () => { const ds = S.kids.filter(k => k.demo); if (!ds.length) return toast('没有示例数据'); for (const k of ds) await purgeKid(k.id); toast('示例数据已清除'); render(); };
+
+/* ========== 提醒 ========== */
+function todaySummary() {
+  const a = allKidsToday(); return { a, total: a.reduce((s, x) => s + x.n, 0), over: a.reduce((s, x) => s + x.over, 0) };
+}
+function summaryText(s) { return `今天要做 ${s.total} 道（${s.a.map(x => `${x.k.name} ${x.n} 道`).join('、')}）${s.over ? `，逾期 ${s.over} 道` : ''}`; }
+let notifyT = null;
+function startNotify() {
+  if (notifyT || !getSet().notify || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const tick = () => {
+    const st = getSet(); const now = new Date(); const hm = pad(now.getHours()) + ':' + pad(now.getMinutes());
+    if (hm >= st.remindTime && LS.getItem('ctb.notified') !== today()) {
+      const s = todaySummary(); if (s.total) { try { new Notification('AI 错题本', { body: summaryText(s) }); } catch (e) { } }
+      LS.setItem('ctb.notified', today());
+    }
+  };
+  tick(); notifyT = setInterval(tick, 30000);
+}
+async function openPopup() {
+  if (!S.kids.length || sessionStorage.getItem('ctb.popup') === today()) return;
+  sessionStorage.setItem('ctb.popup', today());
+  const s = todaySummary(); if (!s.total && !s.over) return;
+  const v = await modal({ title: '今日复习提醒', body: `<p style="font-size:18px" id="popupText">${esc(summaryText(s))}</p><p class="muted small">做完一题点一题，或者打印练习卷做完再登记。</p>`, buttons: [{ text: '稍后', value: null }, { text: '开始做题', cls: 'pri', value: 'go' }] });
+  if (v === 'go') { const first = s.a.find(x => x.n); if (first && first.k.id !== S.kidId) { S.kidId = first.k.id; LS.setItem('ctb.kid', S.kidId); } ACT.startRedo(); }
+}
+
+/* ========== 启动 ========== */
+async function init() {
+  try { await Promise.race([DB.open(), new Promise((_, rj) => setTimeout(() => rj(new Error('timeout')), 3000))]); } catch (e) {
+    DB.useMem();
+    const bar = document.createElement('div');
+    bar.style.cssText = 'position:sticky;top:0;z-index:999;background:#fff4e5;color:#8a4b00;padding:10px 14px;font-size:14px;line-height:1.5;border-bottom:1px solid #f3c98b';
+    bar.textContent = '现在是预览模式：可以试用，但关掉后数据不会保存。请把文件下载到电脑或手机，用 Chrome、Edge 或 Safari 打开，数据才会长期保存。';
+    document.body.prepend(bar);
+  }
+  await loadAll(); await snapshotPlans();
+  const h = location.hash.slice(1); if (PAGES[h] && !['redo', 'review', 'quiz'].includes(h)) S.route = h;
+  render(); startNotify(); openPopup();
+  window.CTB = { S, today, addDays, buildPlan, recordAttempt, statusOf, makeICS, weekStats, todayPlan, getSet, setSet, render, go, loadAll };
+}
+document.addEventListener('DOMContentLoaded', init);
+
+/* ========== 示例数据 ========== */
+async function loadDemo() {
+  const T = today(), D = n => addDays(T, n);
+  const k1 = { id: 'demo-k1', name: '小米（示例）', stage: '小学', grade: '四年级', subjects: ['语文', '数学', '英语'], cap: 5, demo: true, createdAt: Date.now() };
+  const k2 = { id: 'demo-k2', name: '大米（示例）', stage: '初中', grade: '八年级', subjects: SUBJ_ALL['初中'].slice(), cap: 5, demo: true, createdAt: Date.now() + 1 };
+  const e1 = { id: 'demo-e1', kidId: k1.id, subject: '数学', name: '四年级上册期中练习', date: D(-12), imageIds: [], demo: true };
+  const e2 = { id: 'demo-e2', kidId: k1.id, subject: '数学', name: '第四单元小测', date: D(-3), imageIds: [], demo: true };
+  const e3 = { id: 'demo-e3', kidId: k2.id, subject: '物理', name: '八上 光现象单元测', date: D(-9), imageIds: [], demo: true };
+  const e4 = { id: 'demo-e4', kidId: k2.id, subject: '物理', name: '八上 月考', date: D(-2), imageIds: [], demo: true };
+  const mk = (id, kidId, ex, subject, no, stem, wrong, right, score, kp, cause, pitfall, explain, opts, pit) => normM({ id, kidId, examId: ex.id, subject, no, stem, wrong, right, score, kp, cause, pitfall, explain, causeOptions: opts, pitId: pit, demo: true, createdAt: Date.now() + Math.random() * 1000 });
+  const ms = [
+    mk('demo-m1', k1.id, e1, '数学', '5', '用简便方法计算：125 × 24', '2504', '3000', 2, '乘法分配律', '知识没掌握', '把 24 拆成 20 + 4 后，只算了 125 × 20 再加 4，4 没有和 125 相乘', '24 = 20 + 4，125 × 24 = 125 × 20 + 125 × 4 = 2500 + 500 = 3000。也可以 125 × 8 × 3 = 1000 × 3 = 3000。', ['拆开后 4 忘了乘 125', '以为拆完直接相加就行', '没检查 125×4 是多少'], 'demo-p1'),
+    mk('demo-m2', k1.id, e1, '数学', '7', '用简便方法计算：99 × 37 + 37', '3663', '3700', 2, '乘法分配律', '审题出偏差', '后面的“+ 37”看成了多余的，没想到它是 37 × 1，可以和 99 合成 100', '99 × 37 + 37 = 37 × (99 + 1) = 37 × 100 = 3700。', ['没看出 37 就是 37×1', '只算了 99×37', '不会反着用分配律'], 'demo-p1'),
+    mk('demo-m3', k1.id, e1, '数学', '12', '学校买了 4 箱粉笔，每箱 25 盒，每盒 18 元。一共花了多少元？', '450 元', '1800 元', 3, '连乘应用题', '审题出偏差', '只算了一箱的钱（25 × 18），漏掉了“4 箱”这个条件', '先求一共多少盒：4 × 25 = 100（盒），再求钱数：100 × 18 = 1800（元）。', ['没圈出“4 箱”', '以为求一箱的钱', '算完没回头看问题'], 'demo-p2'),
+    mk('demo-m4', k1.id, e2, '数学', '3', '一个长方形长 8 厘米，宽 5 厘米，它的周长是多少厘米？', '40 厘米', '26 厘米', 2, '长方形周长', '知识没掌握', '把周长公式记成了“长 × 宽”，算成了面积', '长方形周长 = (长 + 宽) × 2 = (8 + 5) × 2 = 26（厘米）。', ['周长和面积公式记混', '看到两个数就相乘', '单位没多想'], 'demo-p3'),
+    mk('demo-m5', k1.id, e2, '数学', '6', '计算：380 ÷ 20', '190', '19', 1, '除数是整十数的除法', '习惯有漏洞', '只划掉了除数 20 末尾的 0，被除数 380 的 0 没同时划掉', '被除数和除数同时去掉一个 0：380 ÷ 20 = 38 ÷ 2 = 19。', ['只划了一个数的 0', '划 0 后没写清楚', '没用乘法验算'], 'demo-p3'),
+    mk('demo-m6', k2.id, e3, '物理', '4', '小明站在竖直放置的平面镜前 2 m 处，他在镜中的像与他本人的距离是____ m。', '2', '4', 2, '平面镜成像特点', '审题出偏差', '把“像到镜面的距离”当成了“像到人的距离”', '像距 = 物距 = 2 m，像与人的距离 = 2 + 2 = 4 m。', ['没看清问的是“像与人”', '以为像在镜面上', '没画图'], 'demo-p4'),
+    mk('demo-m7', k2.id, e3, '物理', '6', '人逐渐走近平面镜时，镜中像的大小将____。（选填“变大”“变小”或“不变”）', '变大', '不变', 2, '平面镜成像特点', '知识没掌握', '把“看起来变大”（视角变大）当成了像真的变大', '平面镜成的像与物体大小相等，与距离无关；觉得变大是因为视角变大。', ['凭生活感觉答题', '分不清视角和实际大小', '没记住“等大”'], 'demo-p4'),
+    mk('demo-m8', k2.id, e3, '物理', '9', '一束光与镜面成 30° 角射到平面镜上，反射角是____。', '30°', '60°', 2, '光的反射定律', '审题出偏差', '把光线与镜面的夹角当成入射角，没从法线量起', '入射角是入射光线与法线的夹角：90° − 30° = 60°，反射角 = 入射角 = 60°。', ['把镜面当成法线', '没画法线', '看到 30° 就直接填'], 'demo-p5'),
+    mk('demo-m9', k2.id, e4, '物理', '2', '声音在 15 ℃ 的空气中传播速度约为____ m/s。', '3 × 10⁸', '340', 1, '声速', '知识没掌握', '把声速和光速记混了', '15 ℃ 空气中声速约 340 m/s；3 × 10⁸ m/s 是光在真空中的速度。', ['声速光速记混', '没区分介质', '只记住一个大数'], 'demo-p6'),
+    mk('demo-m10', k2.id, e4, '物理', '11', '一辆汽车 2 h 行驶了 108 km，它的平均速度是多少 m/s？', '54 m/s', '15 m/s', 3, '速度单位换算', '习惯有漏洞', '算出 54 km/h 后，没按题目要求换算成 m/s（÷ 3.6）', 'v = s/t = 108 km ÷ 2 h = 54 km/h = 54 ÷ 3.6 m/s = 15 m/s。', ['没看单位要求', '不会 km/h 换 m/s', '写完没检查单位'], 'demo-p6'),
+    mk('demo-m11', k2.id, e4, '物理', '5', '下列现象中属于光的折射的是（ ）A. 小孔成像 B. 水中倒影 C. 筷子在水中“折断” D. 影子', 'B', 'C', 2, '光的折射', '知识没掌握', '把“倒影”（反射）和“折断”（折射）混为一谈', '水中倒影是平面镜成像（反射）；筷子“折断”是光从水进入空气发生折射。', ['反射折射分不清', '看到“水”就选', '没逐项判断'], null)
+  ];
+  // 按示例故事模拟做题历史
+  const setS = (m, d) => scheduleNew(m, d);
+  const hist = (m, start, seq) => { setS(m, start); seq.forEach(([d, ok, ex]) => recordAttempt(m, ok, { date: d, src: 'demo', explain: ex })); };
+  hist(ms[0], D(-12), [[D(-11), true], [D(-9), true, true], [D(-5), true]]);       // 已掌握
+  hist(ms[1], D(-12), [[D(-11), false], [D(-10), false], [D(-9), true]]);          // 总错，逾期
+  hist(ms[2], D(-12), [[D(-11), true]]);                                           // 复习中，逾期
+  hist(ms[3], D(-3), [[D(-2), true, true]]);                                       // 复习中，今天
+  hist(ms[4], D(-3), []);                                                          // 未做过，逾期
+  hist(ms[5], D(-9), [[D(-8), true], [D(-6), true]]);                              // 复习中
+  hist(ms[6], D(-9), [[D(-8), false], [D(-7), true], [D(-6), false]]);            // 总错
+  hist(ms[7], D(-9), [[D(-8), true, true], [D(-6), true], [D(-2), true]]);       // 已掌握
+  hist(ms[8], D(-2), []);
+  hist(ms[9], D(-2), [[D(-1), false]]);
+  ms[10].archived = true; setS(ms[10], D(-2));
+  const pits = [
+    { id: 'demo-p1', kidId: k1.id, subject: '数学', name: '分配律拆开漏乘', rule: '拆成两个数相加后，括号外的数要和“每一个”都相乘；看到“+ 同一个数”想到它是“×1”。', stars: 2, mistakeIds: ['demo-m1', 'demo-m2'], passed: false, bestStreak: 1 },
+    { id: 'demo-p2', kidId: k1.id, subject: '数学', name: '应用题漏掉条件', rule: '读题时把每个数量都圈出来，列式后检查：每个圈都用上了吗？', stars: 2, mistakeIds: ['demo-m3'], passed: false, bestStreak: 0 },
+    { id: 'demo-p3', kidId: k1.id, subject: '数学', name: '公式与规则记混', rule: '周长是“一圈有多长”=(长+宽)×2；整十数除法，被除数和除数要同时划掉 0。', stars: 1, mistakeIds: ['demo-m4', 'demo-m5'], passed: true, bestStreak: 3 },
+    { id: 'demo-p4', kidId: k2.id, subject: '物理', name: '平面镜像距与大小', rule: '像与物等大、等距：先画出镜面和像，再看题目问的是“像到镜”还是“像到人”。', stars: 2, mistakeIds: ['demo-m6', 'demo-m7'], passed: false, bestStreak: 0 },
+    { id: 'demo-p5', kidId: k2.id, subject: '物理', name: '角度要从法线量', rule: '入射角、反射角都是光线与法线的夹角；题目给的是与镜面夹角时，用 90° 减。', stars: 2, mistakeIds: ['demo-m8'], passed: true, bestStreak: 3 },
+    { id: 'demo-p6', kidId: k2.id, subject: '物理', name: '数值单位对不上', rule: '写答案前看清题目要的单位；1 m/s = 3.6 km/h；声速 340 m/s，光速 3×10⁸ m/s。', stars: 2, mistakeIds: ['demo-m9', 'demo-m10'], passed: false, bestStreak: 1 }
+  ].map(p => Object.assign(p, { demo: true, createdAt: Date.now() }));
+  const q1 = [
+    { q: '用简便方法计算 125 × 32，下面哪种做法正确？', options: ['125 × 30 + 2 = 3752', '125 × 8 × 4 = 4000', '125 × 30 + 125 = 3875', '125 × 32 = 3200'], answer: 1, explain: '32 = 8 × 4，125 × 8 = 1000，再 × 4 = 4000。', steps: '把 32 拆成 8 × 4，先算 125 × 8。', rule: '拆数后每一部分都要参与运算。' },
+    { q: '25 × 44 = 25 × 40 + 25 × □，□ 里应填几？', options: ['40', '25', '4', '44'], answer: 2, explain: '44 = 40 + 4，所以要加上 25 × 4。', steps: '拆成 40 + 4，两个部分都要乘 25。', rule: '括号外的数要和每一个加数相乘。' },
+    { q: '58 × 101 的简便算法是：', options: ['58 × 100 + 1', '58 × 100 + 58', '58 × 101 + 58', '58 + 100 × 58 + 1'], answer: 1, explain: '101 = 100 + 1，58 × 101 = 58 × 100 + 58 × 1 = 5858。', steps: '“+1”那部分也要乘 58，结果是 + 58。', rule: '拆成 100 + 1 后，1 也要乘。' },
+    { q: '46 × 72 + 46 × 28 = ？', options: ['4600', '3312', '46 × 100 + 28', '1288'], answer: 0, explain: '46 × (72 + 28) = 46 × 100 = 4600。', steps: '找相同因数 46，把 72 和 28 合起来。', rule: '看到“同一个数 × 两个数再相加”，先合并。' },
+    { q: '86 × 99 + 86 = ？', options: ['8514', '8600', '8686', '8599'], answer: 1, explain: '86 = 86 × 1，86 × (99 + 1) = 8600。', steps: '把后面的 86 看成 86 × 1。', rule: '“+ 同一个数”就是“× 1”。' },
+    { q: '(40 + 8) × 25 = ？', options: ['1008', '1200', '1000 + 8', '1025'], answer: 1, explain: '40 × 25 + 8 × 25 = 1000 + 200 = 1200。', steps: '8 也要乘 25，不能只加 8。', rule: '括号里每一项都要乘括号外的数。' },
+    { q: '小红算 37 × 102 写成 37 × 100 + 2，她错在哪？', options: ['100 不能拆', '2 也应该乘 37', '应该写成 37 × 100 − 2', '没有错'], answer: 1, explain: '37 × 102 = 37 × 100 + 37 × 2 = 3774。', steps: '拆开后的 2 要和 37 相乘。', rule: '拆数后每一部分都要乘。' }
+  ];
+  const q2 = [
+    { q: '人站在平面镜前 3 m 处，像与人的距离是多少？', options: ['3 m', '6 m', '1.5 m', '0 m'], answer: 1, explain: '像距 = 物距 = 3 m，人与像相距 3 + 3 = 6 m。', steps: '先算像到镜 3 m，再加人到镜 3 m。', rule: '看清问的是“像到镜”还是“像到人”。' },
+    { q: '人以 1 m/s 的速度走向平面镜，像相对于人的速度是：', options: ['0', '1 m/s', '2 m/s', '0.5 m/s'], answer: 2, explain: '人和像同时以 1 m/s 靠近镜面，相对速度 2 m/s。', steps: '像和人都在动，相对速度要相加。', rule: '像与物对称，一起靠近镜面。' },
+    { q: '身高 1.6 m 的人离镜 2 m，后退 1 m 后像高：', options: ['大于 1.6 m', '小于 1.6 m', '等于 1.6 m', '无法确定'], answer: 2, explain: '平面镜成等大的像，与距离无关。', steps: '记住“等大”，不受远近影响。', rule: '像与物等大，和距离无关。' },
+    { q: '物体离平面镜 0.5 m，把镜子向物体移近 0.2 m，像与物的距离变为：', options: ['0.6 m', '1 m', '0.3 m', '0.8 m'], answer: 0, explain: '物距变为 0.3 m，像距也 0.3 m，像与物 0.6 m。', steps: '先算新的物距，再乘 2。', rule: '先画镜面，再算距离。' },
+    { q: '关于平面镜成像，下列说法正确的是：', options: ['离镜越远像越小', '像是实像', '像与物关于镜面对称', '像比物体略大'], answer: 2, explain: '平面镜成正立、等大的虚像，像与物关于镜面对称。', steps: '逐项对照“等大、等距、虚像、对称”。', rule: '等大、等距、对称、虚像。' },
+    { q: '视力表在人背后 2.5 m 的墙上，人看前方 3 m 处平面镜中的像，像离人多远？', options: ['5.5 m', '8.5 m', '3 m', '6 m'], answer: 1, explain: '视力表到镜 5.5 m，像到镜 5.5 m，像到人 5.5 + 3 = 8.5 m。', steps: '画图：先求视力表到镜的距离。', rule: '画出镜面与像，再算问的那段距离。' },
+    { q: '平面镜前 2 m 的蜡烛，镜中的像到蜡烛的距离是：', options: ['2 m', '4 m', '1 m', '8 m'], answer: 1, explain: '像距 2 m，像与蜡烛相距 4 m。', steps: '像到镜 2 m + 蜡烛到镜 2 m。', rule: '“像到物”= 2 × 物距。' }
+  ];
+  const quizzes = [{ id: 'demo-q1', pitId: 'demo-p1', level: 1, questions: q1, demo: true }, { id: 'demo-q2', pitId: 'demo-p4', level: 1, questions: q2, demo: true }];
+  const ws = weekStart(T);
+  const actions = [
+    { id: 'demo-a1', kidId: k1.id, pitId: 'demo-p1', week: ws, text: '每天做 3 道分配律简便计算，做完说出“每个都要乘”', target: 5, count: 2, note: '周一有点抵触，周二主动做了', checks: [D(-1)].filter(d => d >= ws), demo: true },
+    { id: 'demo-a2', kidId: k1.id, pitId: 'demo-p2', week: ws, text: '读应用题时用铅笔圈出所有数量，列式后逐个打勾', target: 4, count: 1, note: '', checks: [], demo: true },
+    { id: 'demo-a3', kidId: k2.id, pitId: 'demo-p4', week: ws, text: '平面镜题先画镜面和像，再标出题目问的距离', target: 5, count: 2, note: '', checks: [D(-1)].filter(d => d >= ws), demo: true }
+  ];
+  for (const k of [k1, k2]) await save('kids', k);
+  for (const e of [e1, e2, e3, e4]) await save('exams', e);
+  for (const m of ms) await save('mistakes', m);
+  for (const p of pits) await save('pits', p);
+  for (const q of quizzes) await save('quizzes', q);
+  for (const a of actions) await save('actions', a);
+  // 过去几天的计划快照（用于完成率示例）
+  for (const k of [k1, k2]) for (let d = ws; d < T; d = addDays(d, 1)) {
+    const ids = attemptsOn(k.id, d).map(x => x.m.id); if (ids.length) await kvSet(`plan:${k.id}:${d}`, ids);
+  }
+  S.kidId = k1.id; LS.setItem('ctb.kid', k1.id);
+  await snapshotPlans();
+}
+</script><script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+</script></body></html>
