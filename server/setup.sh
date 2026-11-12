@@ -36,19 +36,29 @@ echo "nginx: $NGX  配置目录: $VH"
 mkdir -p $VH
 
 say 3. 80 端口验证用配置
-# 在已有的 80 端口站点之外加一个专门给 IP 用的 server（default_server 若已被占用就不加）
-DEF=""; grep -rqs "listen 80 default_server\|listen 80 default" $VH /www/server/nginx/conf/nginx.conf 2>/dev/null || DEF=" default_server"
-cat > $VH/ctb-sync-80.conf <<EOF
+WEB=$HOME_DIR/www
+rm -f $VH/ctb-sync-80.conf
+# 宝塔里如果已有站点用了这个 IP 当域名，就借用那个站点的网站目录做验证
+OLD=$(grep -lsE "server_name[^;]*[[:space:]]$IP([[:space:];]|$)" $VH/*.conf 2>/dev/null | grep -v ctb-sync | head -1)
+if [ -n "$OLD" ]; then
+  R=$(grep -m1 -E "^[[:space:]]*root[[:space:]]" "$OLD" | sed -E 's/^[[:space:]]*root[[:space:]]+//; s/;.*//')
+  echo "已有站点占用该 IP: $OLD  网站目录: $R"
+  [ -n "$R" ] && WEB=$R
+else
+  DEF=""; grep -rqs "listen 80 default_server\|listen 80 default" $VH /www/server/nginx/conf/nginx.conf 2>/dev/null || DEF=" default_server"
+  cat > $VH/ctb-sync-80.conf <<EOF2
 server {
   listen 80$DEF;
   server_name $IP;
   location ^~ /.well-known/acme-challenge/ { root $HOME_DIR/www; }
-  location /ctb-sync/ { return 301 https://\$host\$request_uri; }
 }
-EOF
+EOF2
+fi
+mkdir -p $WEB/.well-known/acme-challenge
 $NGX -t && $NGX -s reload
-echo test > $HOME_DIR/www/.well-known/acme-challenge/ping
-sleep 1; echo -n "验证路径自测: "; curl -s http://$IP/.well-known/acme-challenge/ping; echo
+echo ok-ctb > $WEB/.well-known/acme-challenge/ping
+sleep 1; echo -n "验证路径自测: "; T=$(curl -s http://$IP/.well-known/acme-challenge/ping); echo "$T"
+if [ "$T" != "ok-ctb" ]; then echo "验证路径不通，先停在这里。请把这一屏截图发给 Hark"; exit 1; fi
 
 say 4. 申请 IP 证书（Lets Encrypt shortlived，自动续期）
 if [ ! -x ~/.acme.sh/acme.sh ]; then
@@ -60,7 +70,7 @@ if [ ! -x ~/.acme.sh/acme.sh ]; then
 fi
 AC=~/.acme.sh/acme.sh
 $AC --set-default-ca --server letsencrypt >/dev/null
-$AC --issue --server letsencrypt -d $IP -w $HOME_DIR/www --certificate-profile shortlived --days 3 --force
+$AC --issue --server letsencrypt -d $IP -w $WEB --certificate-profile shortlived --days 3 --force || { echo "证书申请失败，请把这一屏截图发给 Hark"; exit 1; }
 mkdir -p $HOME_DIR/ssl
 $AC --install-cert -d $IP --key-file $HOME_DIR/ssl/key.pem --fullchain-file $HOME_DIR/ssl/full.pem --reloadcmd "$NGX -s reload"
 ls -l $HOME_DIR/ssl
