@@ -231,13 +231,13 @@ const DB = {
   open() {
     return new Promise((res, rej) => {
       let r;
-      try { r = indexedDB.open('ai-ctb', 1); } catch (e) { return rej(e); }
-      r.onupgradeneeded = () => { const db = r.result; STORES.forEach(s => { if (!db.objectStoreNames.contains(s)) db.createObjectStore(s, { keyPath: 'id' }); }); };
+      try { r = indexedDB.open('ai-ctb', 2); } catch (e) { return rej(e); }
+      r.onupgradeneeded = () => { const db = r.result; [...STORES, 'tomb'].forEach(s => { if (!db.objectStoreNames.contains(s)) db.createObjectStore(s, { keyPath: 'id' }); }); };
       r.onsuccess = () => { DB.db = r.result; res(); };
       r.onerror = () => rej(r.error);
     });
   },
-  useMem() { DB.mem = {}; STORES.forEach(s => DB.mem[s] = new Map()); },
+  useMem() { DB.mem = {}; [...STORES, 'tomb'].forEach(s => DB.mem[s] = new Map()); },
   _req(store, mode, fn) {
     if (DB.mem) {
       const m = DB.mem[store]; let out;
@@ -250,13 +250,17 @@ const DB = {
       t.oncomplete = () => res(out); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
     });
   },
+  quiet: false, // 同步写入时不打时间戳、不记删除
+  _stamp(s, o) { if (!DB.quiet && s !== 'tomb') o._ts = Date.now(); return o; },
+  _tomb(s, ids) { if (DB.quiet || s === 'tomb') return Promise.resolve(); const ts = Date.now(); return DB._req('tomb', 'readwrite', st => { ids.forEach(id => st.put({ id: s + '|' + id, s, rid: id, _ts: ts })); }); },
+  _changed() { if (!DB.quiet && typeof syncSoon === 'function') syncSoon(); },
   all(s) { return DB._req(s, 'readonly', st => st.getAll()); },
   get(s, id) { return DB._req(s, 'readonly', st => st.get(id)); },
-  put(s, o) { return DB._req(s, 'readwrite', st => st.put(o)); },
-  putMany(s, arr) { return DB._req(s, 'readwrite', st => { arr.forEach(o => st.put(o)); }); },
-  del(s, id) { return DB._req(s, 'readwrite', st => st.delete(id)); },
-  delMany(s, ids) { return DB._req(s, 'readwrite', st => { ids.forEach(id => st.delete(id)); }); },
-  clear(s) { return DB._req(s, 'readwrite', st => st.clear()); }
+  async put(s, o) { DB._stamp(s, o); const r = await DB._req(s, 'readwrite', st => st.put(o)); DB._changed(); return r; },
+  async putMany(s, arr) { arr.forEach(o => DB._stamp(s, o)); const r = await DB._req(s, 'readwrite', st => { arr.forEach(o => st.put(o)); }); DB._changed(); return r; },
+  async del(s, id) { const r = await DB._req(s, 'readwrite', st => st.delete(id)); await DB._tomb(s, [id]); DB._changed(); return r; },
+  async delMany(s, ids) { const r = await DB._req(s, 'readwrite', st => { ids.forEach(id => st.delete(id)); }); await DB._tomb(s, ids); DB._changed(); return r; },
+  async clear(s) { const ids = DB.quiet ? [] : (await DB.all(s)).map(o => o.id); const r = await DB._req(s, 'readwrite', st => st.clear()); await DB._tomb(s, ids); if (ids.length) DB._changed(); return r; }
 };
 
 /* ========== 状态 ========== */
@@ -1374,7 +1378,12 @@ PAGES.settings = () => {
   <label class="f">每天提醒时间</label><input type="time" id="sTime" value="${esc(st.remindTime)}" style="max-width:180px">
   <div class="row" style="margin-top:10px"><button class="btn" data-act="saveTime">保存时间</button><button class="btn" data-act="enableNotify">${st.notify ? '浏览器通知：已开启' : '开启浏览器通知'}</button><button class="btn pri" data-act="exportIcs">导出日历提醒（.ics）</button></div>
   <p class="muted small">浏览器通知只在应用页面开着时到点提醒；网页关掉后无法推送。所以建议导出日历提醒：每个孩子每天固定时间一条，加每周日 20:00“看下周计划”，导入手机日历后到点就会响。</p></section>
-  <section class="card"><h2>数据</h2><p class="muted small">所有数据保存在本机浏览器（IndexedDB）。换手机或清理浏览器前请先导出备份。</p>
+  <section class="card"><h2>多设备同步</h2>
+  <p class="muted small">手机、电脑填同一个同步码，错题和做题记录会自动互相同步（打开时、改动后、每分钟一次）。AI 密钥不同步，每台设备各填一次。</p>
+  <label class="f">同步码</label><input type="password" id="sSyncCode" value="${esc(st.syncCode || '')}" placeholder="粘贴同步码" autocomplete="off">
+  <label class="f">服务器地址</label><input type="url" id="sSyncUrl" value="${esc(st.syncUrl || SYNC_DEF_URL)}">
+  <div class="row" style="margin-top:10px"><button class="btn pri" data-act="saveSync">保存并同步</button><button class="btn" data-act="syncNow">立即同步</button><span class="muted small" id="syncLine">${esc(syncLine())}</span></div></section>
+  <section class="card"><h2>数据</h2><p class="muted small">所有数据保存在本机浏览器（IndexedDB）；开了同步还会在你的服务器上存一份。仍建议偶尔导出备份。</p>
   <label class="chk"><input type="checkbox" id="expImg">备份时包含原卷照片（文件会大很多）</label>
   <div class="row"><button class="btn" data-act="exportData">导出备份</button><label class="btn">导入备份<input type="file" accept=".json,application/json" id="impIn" class="hidden"></label></div>
   <div class="row" style="margin-top:8px"><button class="btn" data-act="loadDemo">载入示例数据</button><button class="btn" data-act="clearDemo">清除示例数据</button><button class="btn bad" data-act="clearAll">清空全部数据</button></div></section>
@@ -1458,8 +1467,8 @@ async function init() {
   }
   await loadAll(); await snapshotPlans();
   const h = location.hash.slice(1); if (PAGES[h] && !['redo', 'review', 'quiz'].includes(h)) S.route = h;
-  render(); startNotify(); openPopup();
-  window.CTB = { S, today, addDays, buildPlan, recordAttempt, statusOf, makeICS, weekStats, todayPlan, getSet, setSet, render, go, loadAll };
+  render(); startNotify(); openPopup(); syncStart();
+  window.CTB = { S, DB, syncNow, today, addDays, buildPlan, recordAttempt, statusOf, makeICS, weekStats, todayPlan, getSet, setSet, render, go, loadAll };
 }
 document.addEventListener('DOMContentLoaded', init);
 
@@ -1546,6 +1555,81 @@ async function loadDemo() {
   S.kidId = k1.id; LS.setItem('ctb.kid', k1.id);
   await snapshotPlans();
 }
+
+/* ========== 多设备同步（自建服务器） ========== */
+const SYNC_DEF_URL = 'https://124.223.170.26/ctb-sync/api';
+const SY = { busy: false, timer: null, again: false, last: null, err: '' };
+function syncCfg() { const st = getSet(); return { url: (st.syncUrl || SYNC_DEF_URL).trim(), code: (st.syncCode || '').trim() }; }
+const syncOn = () => syncCfg().code.length >= 8 && !DB.mem;
+function syncSoon(ms = 4000) { if (!syncOn()) return; clearTimeout(SY.timer); SY.timer = setTimeout(() => syncNow(), ms); }
+async function syncNow(manual) {
+  if (!syncOn()) { if (manual) alertBox('还没开同步', '先填同步码并保存。'); return false; }
+  if (SY.busy) { SY.again = true; return false; }
+  SY.busy = true; SY.err = '';
+  const { url, code } = syncCfg();
+  const lastPush = Number(LS.getItem('ctb.sync.push') || 0), since = Number(LS.getItem('ctb.sync.seq') || 0);
+  try {
+    const changes = []; let maxTs = lastPush;
+    for (const s of STORES) for (const o of await DB.all(s)) { const ts = o._ts || 1; if (ts > lastPush) { changes.push({ s, id: o.id, ts, d: o }); if (ts > maxTs) maxTs = ts; } }
+    for (const t of await DB.all('tomb')) if (t._ts > lastPush) { changes.push({ s: t.s, id: t.rid, ts: t._ts, d: null }); if (t._ts > maxTs) maxTs = t._ts; }
+    const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 60000);
+    let r;
+    try { r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, since, changes }), signal: ctl.signal }); }
+    finally { clearTimeout(to); }
+    const j = await r.json().catch(() => null);
+    if (!r.ok || !j || !j.ok) throw new Error((j && j.err) || ('服务器返回 ' + r.status));
+    let applied = 0;
+    DB.quiet = true;
+    try {
+      for (const ch of j.changes) {
+        if (!STORES.includes(ch.s)) continue;
+        const cur = await DB.get(ch.s, ch.id); const curTs = cur ? (cur._ts || 0) : 0;
+        if (ch.d) { if (!cur || curTs < ch.ts) { ch.d._ts = ch.ts; await DB.put(ch.s, ch.d); applied++; } }
+        else if (cur && curTs <= ch.ts) { await DB.del(ch.s, ch.id); applied++; }
+      }
+    } finally { DB.quiet = false; }
+    LS.setItem('ctb.sync.push', String(maxTs)); LS.setItem('ctb.sync.seq', String(j.seq));
+    SY.last = new Date();
+    if (applied) {
+      await loadAll();
+      const a = document.activeElement;
+      if (!(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) && !S.play && !S.redo) render();
+    }
+    if (manual) toast(applied ? `同步完成，收到 ${applied} 条更新` : '同步完成，已是最新');
+    updSyncLine();
+    return true;
+  } catch (e) {
+    SY.err = e.name === 'AbortError' ? '连接超时' : (e.message === 'Failed to fetch' ? '连不上同步服务器（没网或服务器没开）' : e.message);
+    if (manual) alertBox('同步没成功', SY.err + '。数据都还在本机，下次联网会自动再同步。');
+    updSyncLine();
+    return false;
+  } finally {
+    SY.busy = false;
+    if (SY.again) { SY.again = false; syncSoon(1000); }
+  }
+}
+function syncLine() {
+  if (!syncOn()) return '未开启';
+  if (SY.err) return '上次失败：' + SY.err;
+  return SY.last ? '已同步 · ' + pad(SY.last.getHours()) + ':' + pad(SY.last.getMinutes()) : '已开启，等待同步';
+}
+function updSyncLine() { const el = $('#syncLine'); if (el) el.textContent = syncLine(); }
+function syncStart() {
+  if (!syncOn()) return;
+  if (SY.started) return syncSoon(500);
+  SY.started = true;
+  syncSoon(500);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncSoon(300); });
+  addEventListener('online', () => syncSoon(500));
+  setInterval(() => { if (document.visibilityState === 'visible') syncSoon(0); }, 60000);
+}
+ACT.saveSync = () => {
+  const code = $('#sSyncCode').value.trim(), url = $('#sSyncUrl').value.trim();
+  if (code && code.length < 8) return alertBox('同步码太短', '请把同步码完整粘贴进来。');
+  const was = syncOn(); setSet({ syncCode: code, syncUrl: url === SYNC_DEF_URL ? '' : url });
+  if (code) { if (!was) syncStart(); toast('已保存，正在同步…'); syncNow(true); } else { toast('已关闭同步'); updSyncLine(); }
+};
+ACT.syncNow = () => syncNow(true);
 </script><script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

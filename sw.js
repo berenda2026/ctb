@@ -1,5 +1,5 @@
 // AI 错题本离线缓存：页面先从缓存秒开，有网时后台取新版，下次打开生效
-const CACHE = 'ctb-22ffb95a24';
+const CACHE = 'ctb-cba7a799bc';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
