@@ -569,7 +569,7 @@ function vagueCause(s) {
 }
 
 /* ========== 图片压缩 ========== */
-function compressImage(file, maxSide = 1600, q = 0.85) {
+function compressImage(file, maxSide = 2400, q = 0.85) {
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file); const img = new Image();
     img.onload = () => {
@@ -593,11 +593,27 @@ function normItem(o) {
   let opts = Array.isArray(o.cause_options) ? o.cause_options.map(s).filter(Boolean).slice(0, 3) : [];
   return { tmp: uid(), no: s(o.no || o.number), stem: s(o.stem || o.question), wrong: s(o.wrong || o.student_answer), right: s(o.right || o.correct_answer), score: s(o.score || o.lost), kp: s(o.kp || o.knowledge_point), cause, pitfall: s(o.pitfall), explain: s(o.explain || o.analysis), causeOptions: opts, keep: typeof o.keep === 'boolean' ? o.keep : (o.keep === 'false' ? false : o.keep === 'true' ? true : undefined), keepReason: s(o.keep_reason) };
 }
-function taskRecognize(k, subject, images) {
+const MARK_RULE = '判定错题的标记：①题号被红笔圈起来（不管题目里有没有打叉，一律算错题，这是家长的标记方式）；②红叉、斜杠、扣分（如 -2）；③红笔圈改、订正痕迹、半对号。没有任何红笔标记的题不算。';
+function taskFind(k, subject, image) {
+  return {
+    system: `【任务:找错题号】你是一位细心的中国${k.stage}${subject}老师，只负责在试卷照片上找出所有被标记为错的题号，一道都不能漏。${JSON_RULE}`,
+    user: `${ctxLine(k, subject)}
+请从上到下、从左到右（分栏的卷子先左栏后右栏）逐题扫一遍这张试卷照片，列出所有被标记为错的题。
+${MARK_RULE}
+题号写成卷子上的样子；大题里的小题写成“5(2)”“三、2”这样；拿不准的也列上，在 why 里写“不确定”。宁可多列，不要漏。
+输出格式：{"exam_title":"卷子标题（看不出填空字符串）","marks":[{"no":"3","why":"题号红圈"}]}
+没有任何标记就返回 {"exam_title":"","marks":[]}。`,
+    images: [image], think: true, maxTokens: 4000
+  };
+}
+function vFind(j) { if (!j || !Array.isArray(j.marks)) throw new Error('缺少 marks'); const seen = new Set(); return { title: j.exam_title || '', nos: j.marks.map(m => String((m && (m.no || m.number)) || '').trim()).filter(n => n && !seen.has(n) && seen.add(n)) }; }
+function taskRecognize(k, subject, images, nos) {
+  const only = nos && nos.length ? `\n只处理这些题号：${nos.join('、')}。每个题号都必须输出一条（顺序同上），即使看不清也要输出，看不清的地方标 [?]；不要输出其他题。` : '';
   return {
     system: `【任务:识别错题】你是一位经验丰富的中国${k.stage}${subject}老师，擅长看懂孩子的试卷照片并做错因分析。${JSON_RULE}`,
     user: `${ctxLine(k, subject)}
-请看这些试卷照片，找出所有做错或被扣分的题（依据红叉、扣分、圈改、订正痕迹）。对每道错题输出：
+请看这些试卷照片，找出所有做错或被扣分的题。${MARK_RULE}${only}
+对每道错题输出：
 - no 题号；stem 题干（完整抄录，选择题含选项）；wrong 孩子的错误答案（照片上孩子写的）；right 正确答案；score 扣分（数字，看不出填空字符串）；
 - kp 知识点（教材里的说法，短语）；cause 错因类型，只能是“知识没掌握”“审题出偏差”“习惯有漏洞”之一；
 - pitfall 易错点一句话：具体到哪一步出错（例：“通分时只把分子乘了 3，分母没乘”）；
@@ -954,7 +970,7 @@ PAGES.add = () => {
   <section class="card"><div class="grid2"><div><label class="f">科目</label><select id="dSubj">${k.subjects.map(s => `<option ${s === D.subject ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
   <div><label class="f">考试日期</label><input type="date" id="dDate" value="${D.date}"></div></div>
   <label class="f">考试名称</label><input type="text" id="dName" value="${esc(D.name)}" placeholder="例如：第三单元测验（可留空，AI 会尝试识别）"></section>
-  <section class="card"><h2>卷子照片</h2><p class="muted small">可一次选多张；会自动压缩到长边 1600 像素。</p>
+  <section class="card"><h2>卷子照片</h2><p class="muted small">可一次选多张；会自动压缩到长边 2400 像素。一张照片拍一页，拍正、拍清楚、别反光，识别最准。</p>
   <div class="row"><label class="btn pri big">拍照<input type="file" accept="image/*" capture="environment" id="camIn" class="hidden"></label><label class="btn big">从相册选（可多选）<input type="file" accept="image/*" multiple id="fileIn" class="hidden"></label></div>
   <div class="thumbs" id="thumbs">${D.images.map((u, i) => `<div class="thumb"><img src="${u}" alt="第${i + 1}张"><button data-act="delImg" data-i="${i}" aria-label="删除">×</button></div>`).join('')}</div>
   <label class="chk"><input type="checkbox" id="dSaveImg" ${D.saveImages ? 'checked' : ''}>把原图也保存在本机（方便以后对照）</label>
@@ -976,20 +992,67 @@ AFTER.add = () => {
   ['dSubj', 'dDate', 'dName', 'dSaveImg'].forEach(id => $('#' + id).addEventListener('change', syncDraft));
 };
 ACT.delImg = el => { syncDraft(); S.draft.images.splice(+el.dataset.i, 1); render(); };
+const normNo = n => String(n || '').replace(/[\s第题.、．。（）()]/g, '').toLowerCase();
+/** 在一张照片上识别指定题号（每批 4 道），返回 {items, title, missing} */
+async function recOnImage(k, subject, image, nos, label) {
+  let items = [], title = '';
+  const run = async list => {
+    for (let i = 0; i < list.length; i += 4) {
+      const part = list.slice(i, i + 4);
+      const r = await runAI(`${label}：第 ${part.join('、')} 题…`, taskRecognize(k, subject, [image], part), vRecognize);
+      if (!r) return false;
+      items = items.concat(r.items); title = title || r.title;
+    }
+    return true;
+  };
+  if (!await run(nos)) return null;
+  const got = () => new Set(items.map(it => normNo(it.no)));
+  let missing = nos.filter(n => !got().has(normNo(n)));
+  if (missing.length) { if (!await run(missing)) return null; missing = nos.filter(n => !got().has(normNo(n))); }
+  const order = nos.map(normNo); const pos = it => { const p = order.indexOf(normNo(it.no)); return p < 0 ? 999 : p; };
+  items.sort((a, b) => pos(a) - pos(b));
+  missing.forEach(n => items.push(Object.assign(blankItem(), { no: n, stem: '[?] AI 没认出这道题，请对照照片补上题干和答案' })));
+  return { items, title };
+}
 ACT.recognize = async () => {
   syncDraft(); const D = S.draft, k = kid();
   if (!hasKey()) { if (await confirmBox('还没有 API Key', '识别需要 DeepSeek API Key。现在去设置里填写吗？也可以用“粘贴 AI 结果 JSON”。', '去设置')) go('settings'); return; }
-  const chunks = []; for (let i = 0; i < D.images.length; i += 3) chunks.push(D.images.slice(i, i + 3));
-  let items = [], title = '';
-  for (let c = 0; c < chunks.length; c++) {
-    const r = await runAI(`AI 正在看卷子${chunks.length > 1 ? `（第 ${c + 1}/${chunks.length} 批）` : ''}…`, taskRecognize(k, D.subject, chunks[c]), vRecognize);
+  let items = [], title = ''; const found = [];
+  for (let i = 0; i < D.images.length; i++) {
+    const tag = D.images.length > 1 ? `第 ${i + 1}/${D.images.length} 张` : '这张卷子';
+    const f = await runAI(`AI 正在找${tag}上的红笔标记…`, taskFind(k, D.subject, D.images[i]), vFind);
+    if (!f) return;
+    title = title || f.title; found.push({ img: i, nos: f.nos });
+    if (!f.nos.length) continue;
+    const r = await recOnImage(k, D.subject, D.images[i], f.nos, `AI 正在分析${tag}`);
     if (!r) return;
     items = items.concat(r.items); title = title || r.title;
   }
   if (!D.name && title) D.name = title;
-  D.items = markKeep(items); D.fromAI = true;
-  if (!items.length) toast('AI 没找到错题，可以手动补题');
+  D.items = markKeep(items); D.found = found; D.fromAI = true;
+  if (!items.length) toast('AI 没找到红笔标记的题，可以点“补识别”或手动补题');
   go('review');
+};
+ACT.rvMore = async () => {
+  readForms(); const D = S.draft, k = kid();
+  if (!hasKey()) return alertBox('还没有 API Key', '补识别需要 DeepSeek API Key，请先到设置里填写。');
+  if (!D.images.length) return alertBox('没有照片', '这次录入没有卷子照片，请用“补一道题”手动录入。');
+  const v = await modal({
+    title: '补识别漏掉的题',
+    body: `<label class="f">漏掉的题号（用逗号或空格隔开）</label><input type="text" id="moreNos" placeholder="例如：5, 7, 三、2">
+      ${D.images.length > 1 ? `<label class="f">在哪张照片上</label><select id="moreImg">${D.images.map((u, i) => `<option value="${i}">第 ${i + 1} 张</option>`).join('')}</select>` : ''}
+      <p class="small" id="moreErr" style="color:var(--bad)"></p>`,
+    buttons: [{ text: '取消', value: null }, { text: '开始识别', cls: 'pri', check: m => { if (!$('#moreNos', m).value.trim()) { $('#moreErr', m).textContent = '请填题号'; return false; } return true; }, value: m => ({ nos: $('#moreNos', m).value.split(/[,，\s;；]+/).map(s => s.trim()).filter(Boolean), img: $('#moreImg', m) ? +$('#moreImg', m).value : 0 }) }]
+  });
+  if (!v) return;
+  const have = new Set(D.items.map(it => normNo(it.no)));
+  const r = await recOnImage(k, D.subject, D.images[v.img], v.nos, 'AI 正在补识别');
+  if (!r) return;
+  const add = r.items.filter(it => !have.has(normNo(it.no)) || !it.stem.startsWith('[?] AI 没认出'));
+  add.forEach(it => { it.keep = true; it.aiKeep = null; });
+  D.items = D.items.concat(add);
+  const f = (D.found || []).find(x => x.img === v.img); if (f) v.nos.forEach(n => { if (!f.nos.includes(n)) f.nos.push(n); });
+  toast(`补上 ${add.length} 道`); render();
 };
 ACT.pasteRec = async () => {
   syncDraft(); const k = kid(), D = S.draft;
@@ -1033,8 +1096,9 @@ PAGES.review = () => {
   const kept = D.items.filter(i => i.keep).length;
   return `<h1>核对错题</h1><p class="muted">${esc(D.subject)} · ${esc(D.name || '未命名考试')} · ${D.date}。${D.fromAI ? 'AI 识别可能有误，请逐题核对，标 [?] 的地方要特别看。' : ''}</p>
   <div class="banner ${kept > 5 ? 'bad' : 'info'}" id="keepBanner">将收录 ${kept} / ${D.items.length} 道进复习计划。${kept > 5 ? '题太多计划会跑不动——建议每科每次考试只收 3–5 道最有价值的；会做但手滑、已经想通的题可以不收（会存为“已归档”）。' : '精选 3–5 道最有价值的题，计划才跑得动。未勾选的会存为“已归档”，不进计划。'}</div>
+  ${D.found ? `<div class="banner info">AI 找到的红笔标记题号：${D.found.map(f => (D.found.length > 1 ? `第 ${f.img + 1} 张 ` : '') + (f.nos.length ? f.nos.map(esc).join('、') : '（无）')).join('；')}。对照卷子看看，漏了就点“补识别漏掉的题”。</div>` : ''}
   <div id="rvList">${D.items.map(itemForm).join('')}</div>
-  <div class="row"><button class="btn" data-act="rvAdd">＋ 补一道题</button></div>
+  <div class="row">${D.images && D.images.length ? '<button class="btn pri" data-act="rvMore">补识别漏掉的题</button>' : ''}<button class="btn" data-act="rvAdd">＋ 补一道题</button></div>
   <div class="card" style="margin-top:12px"><button class="btn pri big block" data-act="rvSave">保存（从明天开始排进计划）</button></div>`;
 };
 AFTER.review = () => { $('#rvList').addEventListener('change', e => { if (e.target.dataset.f === 'keep') { readForms(); render(); } }); };
